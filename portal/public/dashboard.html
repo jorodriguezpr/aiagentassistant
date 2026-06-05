@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AiAgentAssistant — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <h6><i class="bi bi-robot me-2 text-info"></i>AiAgent Admin</h6>
+    <small id="sidebarUser" class="text-muted">—</small>
+  </div>
+  <nav class="sidebar-nav">
+    <ul class="list-unstyled mb-0">
+      <li><a href="#" class="active" data-section="overview"><i class="bi bi-speedometer2"></i> Overview</a></li>
+      <li><a href="#" data-section="settings"><i class="bi bi-sliders"></i> Settings</a></li>
+      <li><a href="#" data-section="logs"><i class="bi bi-terminal"></i> Logs</a></li>
+      <div class="sidebar-divider">Data</div>
+      <li><a href="#" data-section="token-usage"><i class="bi bi-graph-up"></i> Token Usage</a></li>
+      <li><a href="#" data-section="credentials"><i class="bi bi-key"></i> Credentials</a></li>
+      <li><a href="#" data-section="nlscripts"><i class="bi bi-list-task"></i> NL Scripts</a></li>
+      <li><a href="#" data-section="playbooks"><i class="bi bi-journal-code"></i> Playbooks</a></li>
+      <li><a href="#" data-section="scheduled-tasks"><i class="bi bi-clock"></i> Scheduled Tasks</a></li>
+      <li><a href="#" data-section="email-accounts"><i class="bi bi-envelope"></i> Email Accounts</a></li>
+      <li><a href="#" data-section="tasks"><i class="bi bi-activity"></i> Active Tasks</a></li>
+      <li><a href="#" data-section="chat"><i class="bi bi-chat-dots"></i> AI Chat</a></li>
+      <div class="sidebar-divider">Admin</div>
+      <li><a href="#" data-section="users"><i class="bi bi-people"></i> Users</a></li>
+    </ul>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn btn-sm btn-outline-secondary w-100" id="logoutBtn">
+      <i class="bi bi-box-arrow-right me-1"></i>Logout
+    </button>
+  </div>
+</aside>
+
+<!-- Main content -->
+<main class="main-content">
+
+  <!-- ── Overview ───────────────────────────────────────────── -->
+  <section class="page-section active" id="section-overview">
+    <h5 class="fw-bold mb-4"><i class="bi bi-speedometer2 me-2 text-info"></i>Overview</h5>
+    <div class="panel">
+      <div class="panel-title">Service Status</div>
+      <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+        <span id="statusBadge" class="status-badge inactive"><span class="status-dot inactive"></span><span id="statusText">Loading…</span></span>
+        <span id="statusMeta" class="text-muted small"></span>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-sm btn-success" id="btnStart"><i class="bi bi-play-fill me-1"></i>Start</button>
+        <button class="btn btn-sm btn-danger"  id="btnStop"><i class="bi bi-stop-fill me-1"></i>Stop</button>
+        <button class="btn btn-sm btn-warning text-dark" id="btnRestart"><i class="bi bi-arrow-clockwise me-1"></i>Restart</button>
+        <button class="btn btn-sm btn-outline-secondary" id="btnRefreshStatus"><i class="bi bi-arrow-repeat"></i></button>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-sm-6"><div class="panel h-100 mb-0"><div class="panel-title">AI Provider</div><div id="quickProvider" class="fw-semibold fs-6">—</div><div id="quickModel" class="text-muted small mt-1">—</div></div></div>
+      <div class="col-sm-6"><div class="panel h-100 mb-0"><div class="panel-title">Messaging</div><div id="quickMessaging" class="small">—</div></div></div>
+    </div>
+  </section>
+
+  <!-- ── Settings ───────────────────────────────────────────── -->
+  <section class="page-section" id="section-settings">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-sliders me-2 text-info"></i>Settings</h5>
+      <button class="btn btn-sm btn-success" id="btnSaveSettings"><i class="bi bi-check-lg me-1"></i>Save Changes</button>
+    </div>
+    <div class="panel">
+      <ul class="nav settings-tabs" id="settingsTabs"></ul>
+      <div id="settingsTabContent"></div>
+    </div>
+    <div class="form-check form-switch mt-2 mb-0">
+      <input class="form-check-input" type="checkbox" id="restartAfterSave">
+      <label class="form-check-label text-muted small" for="restartAfterSave">Restart service after save</label>
+    </div>
+  </section>
+
+  <!-- ── Logs ───────────────────────────────────────────────── -->
+  <section class="page-section" id="section-logs">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-terminal me-2 text-info"></i>Live Logs</h5>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" id="btnClearLogs"><i class="bi bi-trash me-1"></i>Clear</button>
+        <button class="btn btn-sm btn-outline-secondary" id="btnToggleLogs"><i class="bi bi-pause me-1"></i><span>Pause</span></button>
+      </div>
+    </div>
+    <div class="panel"><pre id="logOutput">Connecting to log stream…</pre></div>
+  </section>
+
+  <!-- ── Token Usage ────────────────────────────────────────── -->
+  <section class="page-section" id="section-token-usage">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-info"></i>Token Usage</h5>
+      <button class="btn btn-sm btn-danger" id="btnResetTokens"><i class="bi bi-trash me-1"></i>Reset Counters</button>
+    </div>
+    <div class="row g-3 mb-3" id="tokenSummaryCards"></div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="panel mb-0"><div class="panel-title">By Provider</div><div id="tokenByProvider"></div></div></div>
+      <div class="col-md-6"><div class="panel mb-0"><div class="panel-title">By Model</div><div id="tokenByModel"></div></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Recent Entries</div>
+      <div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>Time</th><th>Provider</th><th>Model</th><th>Prompt</th><th>Completion</th><th>Total</th></tr></thead><tbody id="tokenTable"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ── Credentials ────────────────────────────────────────── -->
+  <section class="page-section" id="section-credentials">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-key me-2 text-info"></i>Credentials Vault</h5>
+      <button class="btn btn-sm btn-success" id="btnAddCred"><i class="bi bi-plus me-1"></i>Add Credential</button>
+    </div>
+    <div class="panel">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Key</th><th>Updated</th><th></th></tr></thead>
+        <tbody id="credentialsTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── NL Scripts ─────────────────────────────────────────── -->
+  <section class="page-section" id="section-nlscripts">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-list-task me-2 text-info"></i>NL Scripts</h5>
+      <button class="btn btn-sm btn-success" id="btnAddNlScript"><i class="bi bi-plus me-1"></i>New Script</button>
+    </div>
+    <div class="panel">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Name</th><th>Steps</th><th>Description</th><th>Runs</th><th>Last Run</th><th></th></tr></thead>
+        <tbody id="nlscriptsTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Playbooks ──────────────────────────────────────────── -->
+  <section class="page-section" id="section-playbooks">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-journal-code me-2 text-info"></i>Playbooks</h5>
+      <input type="text" id="playbookSearch" class="form-control form-control-sm" placeholder="Search…" style="width:220px">
+    </div>
+    <div class="panel">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Title</th><th>Category</th><th>Steps</th><th>Success/Fail</th><th>Last Used</th><th></th></tr></thead>
+        <tbody id="playbooksTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Scheduled Tasks ────────────────────────────────────── -->
+  <section class="page-section" id="section-scheduled-tasks">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-clock me-2 text-info"></i>Scheduled Tasks</h5>
+      <small class="text-muted">Changes take effect after service restart</small>
+    </div>
+    <div class="panel">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Name</th><th>Type</th><th>Schedule</th><th>Enabled</th><th>Runs</th><th>Last Run</th><th></th></tr></thead>
+        <tbody id="scheduledTasksTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Email Accounts ─────────────────────────────────────── -->
+  <section class="page-section" id="section-email-accounts">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-envelope me-2 text-info"></i>Email Accounts</h5>
+    </div>
+    <div class="panel">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Account</th><th>Email</th><th>Provider</th><th>SMTP</th><th>IMAP</th><th>Default</th><th></th></tr></thead>
+        <tbody id="emailAccountsTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Active Tasks ──────────────────────────────────────── -->
+  <section class="page-section" id="section-tasks">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="fw-bold mb-0"><i class="bi bi-activity me-2 text-info"></i>Active Tasks</h5>
+      <button class="btn btn-sm btn-outline-secondary" id="btnRefreshTasks"><i class="bi bi-arrow-repeat me-1"></i>Refresh</button>
+    </div>
+    <div class="alert mb-3 py-2 small" style="background:#1a2236;border:1px solid #388bfd40;color:#79c0ff">
+      <i class="bi bi-info-circle me-1"></i>
+      Shows checkpointed tasks from Redis. Deleting a task removes its resumable state.
+      To stop a <strong>currently running</strong> loop, send <code>/cancel</code> from Telegram.
+    </div>
+    <div class="panel">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Description</th><th>Phase</th><th>Chat</th><th>Tool Calls</th><th>Started</th><th>Updated</th><th></th></tr></thead>
+          <tbody id="tasksTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── AI Chat ───────────────────────────────────────────── -->
+  <section class="page-section" id="section-chat">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0"><i class="bi bi-chat-dots me-2 text-info"></i>AI Chat</h5>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-danger" id="btnCancelChat"><i class="bi bi-stop-circle me-1"></i>Cancel</button>
+        <button class="btn btn-sm btn-outline-secondary" id="btnClearChat"><i class="bi bi-trash me-1"></i>Clear</button>
+      </div>
+    </div>
+    <div class="panel p-0 d-flex flex-column" style="height:calc(100vh - 160px)">
+      <!-- Message list -->
+      <div id="chatMessages" class="flex-grow-1 overflow-auto p-3" style="min-height:0"></div>
+      <!-- HITL approval banner (hidden by default) -->
+      <div id="chatHITL" class="d-none px-3 py-2" style="background:#1a2236;border-top:1px solid var(--border)">
+        <div class="d-flex align-items-start gap-2">
+          <i class="bi bi-shield-exclamation text-warning mt-1"></i>
+          <div class="flex-grow-1">
+            <div class="small text-warning fw-semibold mb-1">Approval Required</div>
+            <pre id="chatHITLText" class="mb-2 small text-light" style="white-space:pre-wrap;max-height:120px;overflow:auto;background:transparent;border:none;padding:0"></pre>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-success" id="btnApproveHITL"><i class="bi bi-check me-1"></i>Approve</button>
+              <button class="btn btn-sm btn-danger"  id="btnDenyHITL"><i class="bi bi-x me-1"></i>Deny</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Input area -->
+      <div class="p-3 pt-2" style="border-top:1px solid var(--border)">
+        <div class="d-flex gap-2">
+          <input type="text" id="chatInput" class="form-control font-monospace"
+            placeholder="Type a message or /command… (Enter to send)"
+            autocomplete="off">
+          <button class="btn btn-info px-3" id="btnSendChat"><i class="bi bi-send-fill"></i></button>
+        </div>
+        <div class="d-flex justify-content-between mt-1">
+          <small class="text-muted">Tip: /help shows all commands</small>
+          <small id="chatStatus" class="text-muted"></small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Users ──────────────────────────────────────────────── -->
+  <section class="page-section" id="section-users">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="fw-bold mb-0"><i class="bi bi-people me-2 text-info"></i>Users</h5>
+      <button class="btn btn-sm btn-success" id="btnAddUser"><i class="bi bi-plus me-1"></i>Add User</button>
+    </div>
+    <div class="panel">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Username</th><th>Role</th><th>Created</th><th></th></tr></thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── Modals ─────────────────────────────────────────────────── -->
+
+<!-- Add Credential -->
+<div class="modal fade" id="addCredModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content" style="background:var(--bg2);border-color:var(--border)">
+    <div class="modal-header border-secondary"><h6 class="modal-title" id="addCredTitle">Add Credential</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label">Key <small class="text-muted">(same name used in /savecred)</small></label><input type="text" id="credName" class="form-control font-monospace" placeholder="e.g. root@192.168.1.1"></div>
+      <div class="mb-2"><label class="form-label">Value</label><input type="password" id="credValue" class="form-control" placeholder="Secret value"></div>
+    </div>
+    <div class="modal-footer border-secondary"><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-sm btn-success" id="btnConfirmAddCred">Save</button></div>
+  </div></div>
+</div>
+
+<!-- Update Credential Value -->
+<div class="modal fade" id="updateCredModal" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content" style="background:var(--bg2);border-color:var(--border)">
+    <div class="modal-header border-secondary"><h6 class="modal-title">Update Value — <span id="updateCredName"></span></h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><input type="password" id="updateCredValue" class="form-control" placeholder="New value"></div>
+    <div class="modal-footer border-secondary"><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-sm btn-warning text-dark" id="btnConfirmUpdateCred">Update</button></div>
+  </div></div>
+</div>
+
+<!-- NL Script modal -->
+<div class="modal fade" id="nlscriptModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--bg2);border-color:var(--border)">
+    <div class="modal-header border-secondary"><h6 class="modal-title" id="nlscriptModalTitle">NL Script</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label">Name (slug)</label><input type="text" id="nlsName" class="form-control" placeholder="e.g. check-apache"></div>
+      <div class="mb-3"><label class="form-label">Description</label><input type="text" id="nlsDesc" class="form-control" placeholder="Optional"></div>
+      <div class="mb-2">
+        <label class="form-label">Steps <small class="text-muted">(one per line)</small></label>
+        <textarea id="nlsSteps" class="form-control" rows="8" placeholder="SSH to root@192.168.1.1 using vault password&#10;Run: systemctl status apache2&#10;Check the http root directory&#10;Exit"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer border-secondary"><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-sm btn-success" id="btnConfirmNlScript">Save</button></div>
+  </div></div>
+</div>
+
+<!-- Playbook view/edit -->
+<div class="modal fade" id="playbookModal" tabindex="-1">
+  <div class="modal-dialog modal-xl"><div class="modal-content" style="background:var(--bg2);border-color:var(--border)">
+    <div class="modal-header border-secondary"><h6 class="modal-title" id="playbookModalTitle">Playbook</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6"><label class="form-label">Title</label><input type="text" id="pbTitle" class="form-control"></div>
+        <div class="col-sm-3"><label class="form-label">Category</label><input type="text" id="pbCategory" class="form-control"></div>
+        <div class="col-sm-3"><label class="form-label">Target Service</label><input type="text" id="pbService" class="form-control"></div>
+        <div class="col-12"><label class="form-label">Description</label><input type="text" id="pbDesc" class="form-control"></div>
+        <div class="col-12"><label class="form-label">Notes</label><textarea id="pbNotes" class="form-control" rows="2"></textarea></div>
+        <div class="col-12">
+          <label class="form-label">Steps <small class="text-muted">(one per line — paste the step descriptions)</small></label>
+          <textarea id="pbSteps" class="form-control font-monospace" rows="10"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer border-secondary"><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button><button class="btn btn-sm btn-success" id="btnSavePlaybook">Save</button></div>
+  </div></div>
+</div>
+
+<!-- Email account edit -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--bg2);border-color:var(--border)">
+    <div class="modal-header border-secondary"><h6 class="modal-title" id="emailModalTitle">Email Account</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="row g-3">
+        <div class="col-sm-6"><label class="form-label">Display Name</label><input type="text" id="emDisplayName" class="form-control"></div>
+        <div class="col-sm-6"><label class="form-label">Provider</label><select id="emProvider" class="form-select"><option>gmail</option><option>outlook</option><option>yahoo</option><option>custom</option></select></div>
+        <div class="col-sm-6"><label class="form-label">SMTP Host</label><input type="text" id="emSmtpHost" class="form-control"></div>
+        <div class="col-sm-3"><label class="form-label">SMTP Port</label><input type="number" id="emSmtpPort" class="form-control"></div>
+        <div class="col-sm-3"><label class="form-label">SMTP Security</label><select id="emSmtpSec" class="form-select"><option>TLS</option><option>STARTTLS</option><option>none</option></select></div>
+        <div class="col-sm-6"><label class="form-label">SMTP User</label><input type="text" id="emSmtpUser" class="form-control"></div>
+        <div class="col-sm-6"><label class="form-label">SMTP Password</label><input type="password" id="emSmtpPw" class="form-control" placeholder="Leave blank to keep current"></div>
+        <div class="col-sm-6"><label class="form-label">IMAP Host</label><input type="text" id="emImapHost" class="form-control"></div>
+        <div class="col-sm-3"><label class="form-label">IMAP Port</label><input type="number" id="emImapPort" class="form-control"></div>
+        <div class="col-sm-3"><label class="form-label">IMAP Security</label><select id="emImapSec" class="form-select"><option>TLS</option><option>STARTTLS</option><option>none</option></select></div>
+        <div class="col-sm-6"><label class="form-label">IMAP User</label><input type="text" id="emImapUser" class="form-control"></div>
+        <div class="col-sm-6"><label class="form-label">IMAP Password</label><input type="password" id="emImapPw" class="form-control" placeholder="Leave blank to keep current"></div>
+      </div>
+    </div>
+    <div class="modal-footer border-secondary"><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-sm btn-success" id="btnSaveEmail">Save</button></div>
+  </div></div>
+</div>
+
+<!-- Add/Change Password modal (users) -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content" style="background:var(--bg2);border-color:var(--border)">
+    <div class="modal-header border-secondary"><h6 class="modal-title">Add User</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label">Username</label><input type="text" id="newUsername" class="form-control"></div>
+      <div class="mb-3"><label class="form-label">Password</label><input type="password" id="newPassword" class="form-control"></div>
+      <div class="mb-2"><label class="form-label">Role</label><select id="newRole" class="form-select"><option value="admin">Admin</option><option value="viewer">Viewer</option></select></div>
+    </div>
+    <div class="modal-footer border-secondary"><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-sm btn-success" id="btnConfirmAddUser">Create</button></div>
+  </div></div>
+</div>
+<div class="modal fade" id="changePwModal" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content" style="background:var(--bg2);border-color:var(--border)">
+    <div class="modal-header border-secondary"><h6 class="modal-title">Change Password — <span id="changePwUser"></span></h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><input type="password" id="changePwValue" class="form-control" placeholder="New password"></div>
+    <div class="modal-footer border-secondary"><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-sm btn-warning text-dark" id="btnConfirmChangePw">Change</button></div>
+  </div></div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container">
+  <div id="toast" class="toast align-items-center text-white border-0" role="alert" style="background:var(--bg3);border:1px solid var(--border)!important">
+    <div class="d-flex"><div class="toast-body" id="toastMsg"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

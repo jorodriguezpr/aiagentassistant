@@ -1,0 +1,26 @@
+[Unit]
+Description=AiAgentAssistant Admin Portal
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/aiagentassistant/portal
+ExecStart=/usr/bin/node /opt/aiagentassistant/portal/dist/server.js
+Restart=always
+RestartSec=5
+
+Environment=NODE_ENV=production
+Environment=PORTAL_PORT=8085
+Environment=PORTAL_DATA_DIR=/opt/aiagentassistant/portal
+Environment=PORTAL_AGENT_ENV_PATH=/opt/aiagentassistant/app/.env
+Environment=PORTAL_AGENT_SERVICE=aiagentassistant
+Environment=PORTAL_AGENT_APP_DIR=/opt/aiagentassistant/app
+Environment=PORTAL_AGENT_HOME=/opt/aiagentassistant
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=aiagentassistant-portal
+
+[Install]
+WantedBy=multi-user.target

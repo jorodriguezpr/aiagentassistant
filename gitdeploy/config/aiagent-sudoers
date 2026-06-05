@@ -1,0 +1,21 @@
+# aiagent — restricted passwordless sudo for automation
+# Installed by: /opt/aiagentassistant/gitdeploy/install.sh
+
+# Package management for automated tool installation
+aiagent ALL=(root) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/dpkg
+
+# Service control for the aiagentassistant service
+aiagent ALL=(root) NOPASSWD: /bin/systemctl restart aiagentassistant, \
+                             /bin/systemctl start aiagentassistant, \
+                             /bin/systemctl stop aiagentassistant, \
+                             /bin/systemctl status aiagentassistant
+
+# Log access
+aiagent ALL=(root) NOPASSWD: /bin/journalctl -u aiagentassistant
+
+# Diagnostic tools
+aiagent ALL=(root) NOPASSWD: /usr/bin/which, /usr/bin/whois, /usr/bin/curl, \
+                             /usr/bin/wget, /usr/bin/openssl, /usr/bin/traceroute, \
+                             /usr/bin/ip, /usr/bin/ping, /usr/bin/speedtest-cli
+
+# IMPORTANT: No deny rules. No '!ALL'. No overrides.

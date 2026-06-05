@@ -1,0 +1,26 @@
+{
+  "patterns": [
+    {
+      "id": "send_email",
+      "keywords": ["email", "send", "mail"],
+      "actions": ["send_email"],
+      "parameters": {},
+      "skipAI": false
+    },
+    {
+      "id": "list_skills",
+      "keywords": ["list", "show", "skills", "available", "capabilities", "what can", "configured"],
+      "actions": ["list_all_skills"],
+      "parameters": {},
+      "skipAI": true
+    },
+    {
+      "id": "ask_ai",
+      "keywords": [],
+      "actions": ["aiAnswer"],
+      "parameters": {},
+      "skipAI": false
+    }
+  ],
+  "commandMappings": {}
+}

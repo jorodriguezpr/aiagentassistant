@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+portal/node_modules/
+
+# Build output (installer builds from source on the server)
+dist/
+portal/dist/
+*.js.map
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Runtime data
+data/experience-kb.json
+data/token-usage.json
+data/*.json
+data/sessions/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+tmp/
+temp/

@@ -1,0 +1,37 @@
+[Unit]
+Description=AI Agent Assistant Multi-Agent Orchestrator
+After=network.target redis.service
+Wants=redis.service
+
+[Service]
+Type=simple
+User=aiagent
+Group=aiagent
+WorkingDirectory=/opt/aiagentassistant/app
+Environment="NODE_ENV=production"
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# Load environment from .env file
+EnvironmentFile=-/opt/aiagentassistant/app/.env
+
+# Start application with optional keyring credential loading
+ExecStart=/bin/bash /opt/aiagentassistant/app/scripts/start-with-keyring.sh
+
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=15
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=80%
+
+# Allow writes only within the install directory
+ReadWritePaths=/opt/aiagentassistant
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=aiagentassistant
+
+[Install]
+WantedBy=multi-user.target
