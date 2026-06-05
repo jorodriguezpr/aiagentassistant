@@ -231,11 +231,23 @@ download_build() {
   CHROMIUM_PATH=$(command -v chromium-browser || command -v chromium || echo "")
   [[ -n "$CHROMIUM_PATH" ]] && export PUPPETEER_EXECUTABLE_PATH="$CHROMIUM_PATH"
 
-  { cd "$APP_DIR" && npm install --prefer-offline --no-audit --no-fund >/dev/null 2>&1; } &
-  spin "Installing app npm packages"
+  local npm_log="/tmp/aiagentassistant-npm-$$.log"
 
-  { cd "$APP_DIR" && npm run build >/dev/null 2>&1; } &
-  spin "Compiling TypeScript (app)"
+  { cd "$APP_DIR" && npm install --no-audit --no-fund >"$npm_log" 2>&1; } &
+  spin "Installing app npm packages" || {
+    err "npm install (app) failed. Details:"
+    tail -30 "$npm_log" >&2
+    rm -f "$npm_log"
+    die "npm install failed in $APP_DIR — check Node.js version (need 18+) and internet connection."
+  }
+
+  { cd "$APP_DIR" && npm run build >"$npm_log" 2>&1; } &
+  spin "Compiling TypeScript (app)" || {
+    err "TypeScript build (app) failed. Details:"
+    tail -30 "$npm_log" >&2
+    rm -f "$npm_log"
+    die "Build failed in $APP_DIR — check the output above for TypeScript errors."
+  }
 
   ok "Main application built"
 
@@ -247,11 +259,22 @@ download_build() {
   cp    "$REPO/portal/tsconfig.json" "$PORTAL_DIR/"
   cp    "$REPO/portal/setup.js"     "$PORTAL_DIR/"
 
-  { cd "$PORTAL_DIR" && npm install --prefer-offline --no-audit --no-fund >/dev/null 2>&1; } &
-  spin "Installing portal npm packages"
+  { cd "$PORTAL_DIR" && npm install --no-audit --no-fund >"$npm_log" 2>&1; } &
+  spin "Installing portal npm packages" || {
+    err "npm install (portal) failed. Details:"
+    tail -30 "$npm_log" >&2
+    rm -f "$npm_log"
+    die "npm install failed in $PORTAL_DIR"
+  }
 
-  { cd "$PORTAL_DIR" && npm run build >/dev/null 2>&1; } &
-  spin "Compiling TypeScript (portal)"
+  { cd "$PORTAL_DIR" && npm run build >"$npm_log" 2>&1; } &
+  spin "Compiling TypeScript (portal)" || {
+    err "TypeScript build (portal) failed. Details:"
+    tail -30 "$npm_log" >&2
+    rm -f "$npm_log"
+    die "Build failed in $PORTAL_DIR — check the output above for TypeScript errors."
+  }
+  rm -f "$npm_log"
 
   ok "Admin portal built"
 
