@@ -25,4 +25,6 @@ export const CONFIG = {
   AGENT_ENV_PATH: process.env.PORTAL_AGENT_ENV_PATH || '/opt/aiagentassistant/.env',
   AGENT_SERVICE:  process.env.PORTAL_AGENT_SERVICE  || 'aiagentassistant',
   COOKIE_NAME:    'portal_token',
+  SSL_CERT:       process.env.PORTAL_SSL_CERT || '',
+  SSL_KEY:        process.env.PORTAL_SSL_KEY  || '',
 };

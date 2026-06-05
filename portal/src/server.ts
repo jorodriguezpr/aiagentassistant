@@ -1,6 +1,9 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
 import { CONFIG } from './config';
 import { authRouter } from './routes/auth';
 import { settingsRouter } from './routes/settings';
@@ -46,6 +49,19 @@ app.get('/totp-verify',  (_req, res) => res.sendFile(path.join(__dirname, '..', 
 app.get('/totp-setup',   (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'totp-setup.html')));
 app.get('/',             (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'login.html')));
 
-app.listen(CONFIG.PORT, '0.0.0.0', () => {
-  console.log(`[Portal] Admin portal running on port ${CONFIG.PORT}`);
-});
+const hasCerts = CONFIG.SSL_CERT && CONFIG.SSL_KEY &&
+  fs.existsSync(CONFIG.SSL_CERT) && fs.existsSync(CONFIG.SSL_KEY);
+
+if (hasCerts) {
+  const sslOptions = {
+    cert: fs.readFileSync(CONFIG.SSL_CERT),
+    key:  fs.readFileSync(CONFIG.SSL_KEY),
+  };
+  https.createServer(sslOptions, app).listen(CONFIG.PORT, '0.0.0.0', () => {
+    console.log(`[Portal] Admin portal running on https://0.0.0.0:${CONFIG.PORT}`);
+  });
+} else {
+  http.createServer(app).listen(CONFIG.PORT, '0.0.0.0', () => {
+    console.log(`[Portal] Admin portal running on http://0.0.0.0:${CONFIG.PORT} (no TLS — set PORTAL_SSL_CERT and PORTAL_SSL_KEY for HTTPS)`);
+  });
+}

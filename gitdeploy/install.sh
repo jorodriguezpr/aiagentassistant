@@ -486,6 +486,22 @@ setup_portal() {
   chmod 600 "$PORTAL_DIR/.jwt_secret"
   ok "JWT secret generated"
 
+  # TLS certificate (self-signed — valid 10 years)
+  local cert_dir="$PORTAL_DIR/certs"
+  mkdir -p "$cert_dir"
+  local server_ip
+  server_ip=$(server_ip)
+  openssl req -x509 -newkey rsa:2048 -nodes \
+    -keyout "$cert_dir/key.pem" \
+    -out    "$cert_dir/cert.pem" \
+    -days   3650 \
+    -subj   "/CN=${server_ip}/O=AI Agent Assistant/OU=Admin Portal" \
+    -addext "subjectAltName=IP:${server_ip},IP:127.0.0.1" \
+    >/dev/null 2>&1
+  chmod 600 "$cert_dir/key.pem" "$cert_dir/cert.pem"
+  ok "TLS certificate generated (self-signed, valid 10 years)"
+  info "Browser will show a security warning — click 'Advanced' → 'Accept the risk' to proceed"
+
   # Initial admin password
   ADMIN_PASS=$(openssl rand -base64 12 | tr -d '+/=\n' | head -c 16)
 
@@ -538,7 +554,7 @@ summary() {
   echo ""
   echo -e "  ${BOLD}Admin Portal${NC}"
   echo -e "  ┌─────────────────────────────────────────────────────┐"
-  echo -e "  │  URL:       ${CYAN}http://${ip}:8085${NC}"
+  echo -e "  │  URL:       ${CYAN}https://${ip}:8085${NC}"
   echo -e "  │  Username:  ${BOLD}admin${NC}"
   echo -e "  │  Password:  ${BOLD}${ADMIN_PASS}${NC}"
   echo -e "  └─────────────────────────────────────────────────────┘"

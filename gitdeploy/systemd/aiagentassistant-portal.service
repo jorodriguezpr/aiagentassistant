@@ -17,6 +17,8 @@ Environment=PORTAL_AGENT_ENV_PATH=/opt/aiagentassistant/app/.env
 Environment=PORTAL_AGENT_SERVICE=aiagentassistant
 Environment=PORTAL_AGENT_APP_DIR=/opt/aiagentassistant/app
 Environment=PORTAL_AGENT_HOME=/opt/aiagentassistant
+Environment=PORTAL_SSL_CERT=/opt/aiagentassistant/portal/certs/cert.pem
+Environment=PORTAL_SSL_KEY=/opt/aiagentassistant/portal/certs/key.pem
 
 StandardOutput=journal
 StandardError=journal
