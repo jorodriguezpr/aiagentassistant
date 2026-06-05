@@ -53,23 +53,23 @@ section() { echo -e "\n${BOLD}${MAGENTA}━━━ $* ━━━${NC}"; }
 ask() {
   local prompt="$1" default="${2:-}" var
   if [[ -n "$default" ]]; then
-    read -rp "  → $prompt [$default]: " var
+    read -rp "  → $prompt [$default]: " var </dev/tty
     echo "${var:-$default}"
   else
-    read -rp "  → $prompt: " var
+    read -rp "  → $prompt: " var </dev/tty
     echo "$var"
   fi
 }
 
 ask_secret() {
   local prompt="$1" var
-  read -rsp "  → $prompt: " var; echo >&2
+  read -rsp "  → $prompt: " var </dev/tty; echo >&2
   echo "$var"
 }
 
 ask_yn() {
   local prompt="$1" default="${2:-n}" var
-  read -rp "  → $prompt (y/n) [$default]: " var
+  read -rp "  → $prompt (y/n) [$default]: " var </dev/tty
   var="${var:-$default}"
   [[ "${var,,}" == "y" ]]
 }
