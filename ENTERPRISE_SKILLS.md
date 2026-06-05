@@ -227,6 +227,8 @@ Securely store and retrieve credentials used by the agent for remote access and 
 
 The agent loads credentials automatically when it needs to connect to a matching host — you don't need to mention passwords in your messages.
 
+**Portal credential prompting:** If the agent needs a credential that isn't saved yet, the Admin Portal chat shows an inline prompt asking you to provide it. On submit the value is saved to the vault and the agent continues without restarting the task.
+
 ---
 
 ## IT Knowledge Base
@@ -315,17 +317,34 @@ Step 4: Send a summary email to admin@example.com
 /deletenlscript weekly-maintenance  — remove it
 ```
 
+**Schedule an NL script to run automatically:**
+```
+"Schedule the weekly-maintenance script to run every Sunday at midnight"
+```
+
+This creates a `nlscript` scheduled task. When the cron fires, the agent runs the script autonomously through the full AI tool loop — no human interaction required.
+
 ---
 
 ## Scheduled Tasks
 
-Create and manage cron-style recurring tasks.
+Create and manage cron-style recurring tasks. Supports three task types: shell commands, emails, and NL scripts (runs the full AI loop on a schedule).
 
 | Tool | What it does |
 |------|-------------|
 | `create_scheduled_task` | Schedule a task to run at a given cron expression |
-| `list_scheduled_tasks` | List all scheduled tasks |
-| `delete_scheduled_task` | Remove a scheduled task |
+| `list_scheduled_tasks` | List all scheduled tasks with status and run history |
+| `delete_scheduled_task` | Remove a scheduled task permanently |
+| `pause_scheduled_task` | Temporarily disable a scheduled task |
+| `resume_scheduled_task` | Re-enable a paused scheduled task |
+
+**Task types:**
+
+| Type | Description |
+|------|-------------|
+| `command` | Run a local or remote shell command |
+| `email` | Send an automated email |
+| `nlscript` | Run a saved NL script through the full AI tool loop |
 
 **Via Telegram:**
 ```
@@ -336,7 +355,19 @@ Create and manage cron-style recurring tasks.
 ```
 "Schedule a disk check every day at 8am"
 "Run the weekly-maintenance NL script every Sunday at midnight"
+"Schedule the 'check-server-health' script to run hourly"
+"Pause the daily disk check task"
 "Cancel the daily disk check task"
+```
+
+**Scheduling syntax** — use plain English or cron expressions:
+```
+"daily"                  → 0 9 * * *   (9:00 AM)
+"daily at 3:00 AM"       → 0 3 * * *
+"hourly"                 → 0 * * * *
+"every 30 minutes"       → */30 * * * *
+"every Sunday at midnight" → 0 0 * * 0
+"*/5 * * * *"            → custom cron
 ```
 
 ---

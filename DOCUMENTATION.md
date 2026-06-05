@@ -21,7 +21,7 @@ The installer is interactive. It will ask for your Telegram bot token and AI pro
 
 ### Already installed — need to configure something
 
-→ Open the **Admin Portal** at `http://YOUR_SERVER:8085` (Settings tab)  
+→ Open the **Admin Portal** at `https://YOUR_SERVER:8085` (Settings tab)  
 → Or edit `/opt/aiagentassistant/app/.env` directly and restart
 
 ### Need to understand the AI tools
@@ -30,7 +30,7 @@ The installer is interactive. It will ask for your Telegram bot token and AI pro
 
 ### Need to know what the AI agent can do
 
-→ **[ENTERPRISE_SKILLS.md](./ENTERPRISE_SKILLS.md)** — complete reference for all 140+ tools organized by category
+→ **[ENTERPRISE_SKILLS.md](./ENTERPRISE_SKILLS.md)** — complete reference for all 140+ tools organized by category, including scheduled NL scripts and credential prompting
 
 ---
 
