@@ -81,13 +81,18 @@ server_ip() {
 }
 
 spin() {
-  local pid=$! frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏' i=0
+  local pid=$! frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏' i=0 rc=0
   while kill -0 "$pid" 2>/dev/null; do
     printf "\r  ${CYAN}%s${NC} %s" "${frames:$((i%${#frames})):1}" "$1"
     ((i++)); sleep 0.1
   done
-  printf "\r  ${GREEN}✓${NC} %s\n" "$1"
-  wait "$pid"
+  wait "$pid" || rc=$?
+  if [[ $rc -eq 0 ]]; then
+    printf "\r  ${GREEN}✓${NC} %s\n" "$1"
+  else
+    printf "\r  ${RED}✗${NC} %s (failed — exit %s)\n" "$1" "$rc" >&2
+  fi
+  return $rc
 }
 
 # ─── Phase 0: Pre-flight ─────────────────────────────────────────────────────
@@ -197,8 +202,15 @@ download_build() {
   mkdir -p "$TMP_DIR"
 
   info "Cloning repository…"
-  { git clone --depth=1 "$REPO_URL" "$TMP_DIR/repo" >/dev/null 2>&1; } &
-  spin "Fetching source from GitHub"
+  local clone_log="/tmp/aiagentassistant-clone-$$.log"
+  { git clone --depth=1 "$REPO_URL" "$TMP_DIR/repo" >"$clone_log" 2>&1; } &
+  spin "Fetching source from GitHub" || {
+    err "git clone failed. Details:"
+    cat "$clone_log" >&2
+    rm -f "$clone_log"
+    die "Could not clone $REPO_URL\n  Verify the repository is public and the URL is correct, then retry."
+  }
+  rm -f "$clone_log"
 
   local REPO="$TMP_DIR/repo"
 
