@@ -3067,7 +3067,7 @@ Be helpful and efficient. Use appropriate tools to complete requests. Provide cl
           // ──────────────────────────────────────────────────────────────────────
 
           // Tool calling loop - allow AI to use tools iteratively
-          let maxIterations = 120;
+          let maxIterations = 240;
           let iteration = 0;
           let finalResponse = '';
           let continuationInjections = 0;

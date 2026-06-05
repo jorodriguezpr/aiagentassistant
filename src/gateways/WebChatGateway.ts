@@ -618,7 +618,7 @@ export class WebChatGateway {
     let taskId: string | null = null;
     let iteration = 0;
     let stepCounter = 0;
-    const MAX_ITERATIONS = 120;
+    const MAX_ITERATIONS = 240;
 
     while (iteration < MAX_ITERATIONS) {
       iteration++;
