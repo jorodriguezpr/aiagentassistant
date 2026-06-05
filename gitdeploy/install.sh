@@ -300,22 +300,26 @@ download_build() {
 configure() {
   step 4 "Interactive configuration"
   echo ""
-  echo -e "  ${BOLD}We need a few things to get your AI Agent running.${NC}"
-  echo -e "  You can update everything later from the Admin Portal.\n"
+  echo -e "  ${BOLD}Both Telegram and AI provider are optional — press Enter to skip${NC}"
+  echo -e "  ${BOLD}and configure them later in the Admin Portal.${NC}\n"
 
   # ── Telegram ──────────────────────────────────────────────────────────────
-  section "Telegram Bot"
+  section "Telegram Bot (optional)"
   echo "  Get your bot token from @BotFather on Telegram."
   echo "  Send /newbot, follow the steps, and paste the token below."
+  echo "  ${YELLOW}Press Enter to skip and configure later.${NC}"
   echo ""
   local TELEGRAM_TOKEN=""
-  while [[ -z "$TELEGRAM_TOKEN" ]]; do
-    TELEGRAM_TOKEN=$(ask "Telegram Bot Token")
-    [[ -z "$TELEGRAM_TOKEN" ]] && warn "Telegram token is required. Please enter it."
-  done
+  TELEGRAM_TOKEN=$(ask "Telegram Bot Token (or Enter to skip)")
+  if [[ -z "$TELEGRAM_TOKEN" ]]; then
+    warn "Telegram skipped — set TELEGRAM_BOT_TOKEN in the Admin Portal → Settings before using the bot."
+    TELEGRAM_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
+  else
+    ok "Telegram token saved"
+  fi
 
   # ── AI Provider ───────────────────────────────────────────────────────────
-  section "AI Provider"
+  section "AI Provider (optional)"
   echo "  Select your AI provider:"
   echo ""
   echo "    1) Anthropic Claude   (claude-opus-4-7)  ★ Recommended"
@@ -323,9 +327,10 @@ configure() {
   echo "    3) GitHub Copilot     (gpt-4o) — free with GitHub Copilot subscription"
   echo "    4) Ollama Local       (needs Ollama running on this server)"
   echo "    5) Ollama Cloud       (ollama.com — free tier available)"
+  echo "    6) Skip               — configure later in Admin Portal"
   echo ""
   local provider_choice
-  provider_choice=$(ask "Choice" "1")
+  provider_choice=$(ask "Choice" "6")
 
   local AI_PROVIDER AI_MODEL AI_API_KEY="" OLLAMA_URL="" OLLAMA_CLOUD_KEY="" GITHUB_COPILOT_KEY="" EXTRA_ENV=""
 
@@ -337,6 +342,7 @@ configure() {
       echo "  Get your key at: https://console.anthropic.com"
       AI_API_KEY=$(ask_secret "Anthropic API Key (sk-ant-...)")
       EXTRA_ENV="ANTHROPIC_API_KEY=${AI_API_KEY}"
+      ok "AI Provider: $AI_PROVIDER / Model: $AI_MODEL"
       ;;
     2)
       AI_PROVIDER="openai"
@@ -345,6 +351,7 @@ configure() {
       echo "  Get your key at: https://platform.openai.com/api-keys"
       AI_API_KEY=$(ask_secret "OpenAI API Key (sk-...)")
       EXTRA_ENV="OPENAI_API_KEY=${AI_API_KEY}"
+      ok "AI Provider: $AI_PROVIDER / Model: $AI_MODEL"
       ;;
     3)
       AI_PROVIDER="github-copilot"
@@ -354,6 +361,7 @@ configure() {
       AI_API_KEY=$(ask_secret "GitHub PAT Token (github_pat_...)")
       GITHUB_COPILOT_KEY="$AI_API_KEY"
       EXTRA_ENV="GITHUB_COPILOT_API_KEY=${AI_API_KEY}"
+      ok "AI Provider: $AI_PROVIDER / Model: $AI_MODEL"
       ;;
     4)
       AI_PROVIDER="ollama"
@@ -361,6 +369,7 @@ configure() {
       OLLAMA_URL=$(ask "Ollama base URL" "http://localhost:11434")
       AI_API_KEY="ollama"
       EXTRA_ENV="OLLAMA_BASE_URL=${OLLAMA_URL}"
+      ok "AI Provider: $AI_PROVIDER / Model: $AI_MODEL"
       ;;
     5)
       AI_PROVIDER="ollama-cloud"
@@ -370,14 +379,16 @@ configure() {
       OLLAMA_CLOUD_KEY=$(ask_secret "Ollama Cloud API Key")
       AI_API_KEY="$OLLAMA_CLOUD_KEY"
       EXTRA_ENV="OLLAMA_CLOUD_API_KEY=${OLLAMA_CLOUD_KEY}"
+      ok "AI Provider: $AI_PROVIDER / Model: $AI_MODEL"
       ;;
     *)
-      AI_PROVIDER="anthropic"; AI_MODEL="claude-opus-4-7"
-      warn "Invalid choice — defaulting to Anthropic. Configure in the portal after install."
+      AI_PROVIDER="anthropic"
+      AI_MODEL="claude-opus-4-7"
+      AI_API_KEY="YOUR_API_KEY"
+      EXTRA_ENV="ANTHROPIC_API_KEY=YOUR_API_KEY"
+      warn "AI provider skipped — set AI_PROVIDER and API key in the Admin Portal → Settings."
       ;;
   esac
-
-  ok "AI Provider: $AI_PROVIDER / Model: $AI_MODEL"
 
   # ── Optional: Discord ─────────────────────────────────────────────────────
   section "Optional Features"
@@ -561,7 +572,17 @@ summary() {
   echo ""
   echo -e "  ${BOLD}Next Steps:${NC}"
   echo -e "  1. Open the Admin Portal in your browser"
-  echo -e "  2. Login and go to ${BOLD}Settings → AI Provider${NC} to verify keys"
+
+  # Remind about skipped items
+  local env_file="$APP_DIR/.env"
+  if grep -q "^TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN" "$env_file" 2>/dev/null; then
+    echo -e "  ${YELLOW}⚠  Telegram not configured — go to Settings → TELEGRAM_BOT_TOKEN${NC}"
+  fi
+  if grep -q "^AI_API_KEY=YOUR_API_KEY" "$env_file" 2>/dev/null; then
+    echo -e "  ${YELLOW}⚠  AI provider not configured — go to Settings → AI_PROVIDER and API key${NC}"
+  fi
+
+  echo -e "  2. Login and go to ${BOLD}Settings${NC} to set any skipped values"
   echo -e "  3. Add server credentials under ${BOLD}Credentials${NC}"
   echo -e "  4. Talk to your AI Agent on Telegram!"
   echo ""
