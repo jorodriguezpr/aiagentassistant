@@ -81,10 +81,10 @@ server_ip() {
 }
 
 spin() {
-  local pid=$! frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏' i=0 rc=0
+  local pid=$! frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏' i=1 rc=0
   while kill -0 "$pid" 2>/dev/null; do
     printf "\r  ${CYAN}%s${NC} %s" "${frames:$((i%${#frames})):1}" "$1"
-    ((i++)); sleep 0.1
+    i=$((i+1)); sleep 0.1
   done
   wait "$pid" || rc=$?
   if [[ $rc -eq 0 ]]; then
@@ -233,22 +233,23 @@ download_build() {
 
   local npm_log="/tmp/aiagentassistant-npm-$$.log"
 
-  { cd "$APP_DIR" && npm install --no-audit --no-fund >"$npm_log" 2>&1; } &
-  spin "Installing app npm packages" || {
+  info "Running npm install for app (may take 1-3 minutes)…"
+  cd "$APP_DIR"
+  npm install --no-audit --no-fund >"$npm_log" 2>&1 || {
     err "npm install (app) failed. Details:"
-    tail -30 "$npm_log" >&2
+    tail -40 "$npm_log" >&2
     rm -f "$npm_log"
     die "npm install failed in $APP_DIR — check Node.js version (need 18+) and internet connection."
   }
+  ok "App packages installed"
 
-  { cd "$APP_DIR" && npm run build >"$npm_log" 2>&1; } &
-  spin "Compiling TypeScript (app)" || {
+  info "Compiling TypeScript (app)…"
+  npm run build >"$npm_log" 2>&1 || {
     err "TypeScript build (app) failed. Details:"
-    tail -30 "$npm_log" >&2
+    tail -40 "$npm_log" >&2
     rm -f "$npm_log"
-    die "Build failed in $APP_DIR — check the output above for TypeScript errors."
+    die "Build failed in $APP_DIR — see TypeScript errors above."
   }
-
   ok "Main application built"
 
   # ── Portal ────────────────────────────────────────────────────────────────
@@ -259,20 +260,22 @@ download_build() {
   cp    "$REPO/portal/tsconfig.json" "$PORTAL_DIR/"
   cp    "$REPO/portal/setup.js"     "$PORTAL_DIR/"
 
-  { cd "$PORTAL_DIR" && npm install --no-audit --no-fund >"$npm_log" 2>&1; } &
-  spin "Installing portal npm packages" || {
+  info "Running npm install for portal…"
+  cd "$PORTAL_DIR"
+  npm install --no-audit --no-fund >"$npm_log" 2>&1 || {
     err "npm install (portal) failed. Details:"
-    tail -30 "$npm_log" >&2
+    tail -40 "$npm_log" >&2
     rm -f "$npm_log"
     die "npm install failed in $PORTAL_DIR"
   }
+  ok "Portal packages installed"
 
-  { cd "$PORTAL_DIR" && npm run build >"$npm_log" 2>&1; } &
-  spin "Compiling TypeScript (portal)" || {
+  info "Compiling TypeScript (portal)…"
+  npm run build >"$npm_log" 2>&1 || {
     err "TypeScript build (portal) failed. Details:"
-    tail -30 "$npm_log" >&2
+    tail -40 "$npm_log" >&2
     rm -f "$npm_log"
-    die "Build failed in $PORTAL_DIR — check the output above for TypeScript errors."
+    die "Build failed in $PORTAL_DIR — see TypeScript errors above."
   }
   rm -f "$npm_log"
 
