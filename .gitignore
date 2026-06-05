@@ -12,10 +12,10 @@ portal/dist/
 .env.local
 .env.*.local
 
-# Runtime data
-data/experience-kb.json
+# Runtime data — exclude generated files, keep bundled knowledge base
 data/token-usage.json
 data/*.json
+!data/experience-kb.json
 data/sessions/
 
 # Logs

@@ -281,6 +281,29 @@ download_build() {
 
   ok "Admin portal built"
 
+  # ── Knowledge base (playbooks) ───────────────────────────────────────────
+  mkdir -p "$APP_DIR/data"
+  local bundled_kb="$REPO/data/experience-kb.json"
+  local installed_kb="$APP_DIR/data/experience-kb.json"
+  if [[ -f "$bundled_kb" ]]; then
+    if [[ -f "$installed_kb" ]]; then
+      # Reinstall: merge bundled playbooks that don't already exist
+      node -e "
+        const fs = require('fs');
+        const existing = JSON.parse(fs.readFileSync('$installed_kb', 'utf8'));
+        const bundled  = JSON.parse(fs.readFileSync('$bundled_kb',   'utf8'));
+        const ids = new Set((existing.playbooks || []).map(p => p.id));
+        const added = (bundled.playbooks || []).filter(p => !ids.has(p.id));
+        existing.playbooks = [...(existing.playbooks || []), ...added];
+        fs.writeFileSync('$installed_kb', JSON.stringify(existing, null, 2));
+        console.log('  Merged ' + added.length + ' new playbook(s) into existing knowledge base');
+      " 2>/dev/null || cp "$bundled_kb" "$installed_kb"
+    else
+      cp "$bundled_kb" "$installed_kb"
+    fi
+    ok "IT knowledge base installed ($(node -e "const f=require('fs'),k=JSON.parse(f.readFileSync('$installed_kb'));process.stdout.write(String((k.playbooks||[]).length))" 2>/dev/null || echo '?') playbooks)"
+  fi
+
   # ── Copy system config files ──────────────────────────────────────────────
   cp "$REPO/gitdeploy/config/aiagent-sudoers"                       /tmp/aiagent-sudoers-install
   cp "$REPO/gitdeploy/systemd/aiagentassistant.service"             /tmp/aiagentassistant.service
