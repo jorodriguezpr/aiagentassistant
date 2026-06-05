@@ -671,6 +671,7 @@ let chatSessionId = null;
 let chatSSE = null;
 let chatRunning = false;
 let chatPendingHITL = null; // { opId }
+let chatPendingCredential = null; // { key }
 let chatActivityWrap = null; // single tool-activity widget for current turn
 let chatStepCount = 0;       // total steps this turn
 
@@ -843,9 +844,17 @@ function handleChatEvent(evt) {
       break;
     }
 
+    case 'credential_needed': {
+      removeThinking();
+      showCredentialPanel(evt.key);
+      setChatStatus('Waiting for credential…');
+      break;
+    }
+
     case 'done':
       removeThinking();
       finalizeActivity();
+      hideCredentialPanel();
       chatRunning = false;
       setChatStatus('');
       document.getElementById('chatInput').disabled = false;
@@ -855,6 +864,7 @@ function handleChatEvent(evt) {
     case 'cancelled':
       removeThinking();
       finalizeActivity();
+      hideCredentialPanel();
       appendBubble('system', '🛑 Task cancelled.');
       chatRunning = false;
       setChatStatus('');
@@ -865,6 +875,7 @@ function handleChatEvent(evt) {
     case 'error':
       removeThinking();
       finalizeActivity();
+      hideCredentialPanel();
       appendBubble('system', `❌ ${escHtml(evt.message || 'Unknown error')}`);
       chatRunning = false;
       setChatStatus('');
@@ -942,6 +953,53 @@ async function sendHITLResponse(approved) {
     body: JSON.stringify({ sessionId: chatSessionKey(), opId, approved }),
   });
 }
+
+function showCredentialPanel(key) {
+  chatPendingCredential = { key };
+  document.getElementById('chatCredentialKey').textContent = key;
+  document.getElementById('chatCredentialInput').value = '';
+  document.getElementById('chatCredentialPanel').classList.remove('d-none');
+  setTimeout(() => document.getElementById('chatCredentialInput').focus(), 50);
+}
+
+function hideCredentialPanel() {
+  chatPendingCredential = null;
+  document.getElementById('chatCredentialPanel').classList.add('d-none');
+  document.getElementById('chatCredentialInput').value = '';
+}
+
+async function submitCredential(skip = false) {
+  if (!chatPendingCredential) return;
+  const { key } = chatPendingCredential;
+  const value = skip ? '' : document.getElementById('chatCredentialInput').value;
+  if (!skip && !value) { toast('Please enter a value', 'warning'); return; }
+  hideCredentialPanel();
+  if (skip) {
+    appendBubble('system', `⚠️ Credential <code>${escHtml(key)}</code> skipped — agent will continue without it.`);
+    return;
+  }
+  try {
+    const r = await fetch('/api/chat/provide-credential', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: chatSessionKey(), key, value }),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      appendBubble('system', `🔑 Credential <code>${escHtml(key)}</code> saved — agent will continue.`);
+    } else {
+      appendBubble('system', `❌ Failed to submit credential: ${escHtml(d.error || 'Unknown error')}`);
+    }
+  } catch (e) {
+    appendBubble('system', `❌ Failed to submit credential: ${escHtml(e.message)}`);
+  }
+}
+
+document.getElementById('btnSubmitCredential').addEventListener('click', () => submitCredential(false));
+document.getElementById('btnSkipCredential').addEventListener('click', () => submitCredential(true));
+document.getElementById('chatCredentialInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); submitCredential(false); }
+});
 
 async function sendChatMessage() {
   const input = document.getElementById('chatInput');

@@ -77,6 +77,11 @@ chatRouter.post('/approve', (req: Request, res: Response) => {
   proxyRequest('POST', '/approve', req.body, req, res);
 });
 
+// Provide credential to waiting agent
+chatRouter.post('/provide-credential', (req: Request, res: Response) => {
+  proxyRequest('POST', '/credential', req.body, req, res);
+});
+
 // Cancel active loop
 chatRouter.post('/cancel/:sessionId', (req: Request, res: Response) => {
   proxyRequest('POST', `/cancel/${req.params.sessionId}`, {}, req, res);
