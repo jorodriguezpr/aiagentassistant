@@ -25,6 +25,13 @@ import logger from '../utils/logger';
 import { sendEmailSkill } from './EmailSkills';
 import { executeCommandSkill } from './ExampleSkills';
 
+// Injected by index.ts after boot — runs an NL script through the AI loop
+let nlScriptRunner: ((scriptName: string) => Promise<void>) | null = null;
+
+export function setNLScriptRunner(runner: (scriptName: string) => Promise<void>): void {
+  nlScriptRunner = runner;
+}
+
 // Storage path for scheduled tasks
 const TASKS_DIR = path.join(process.env.HOME || '/root', '.config', 'aiagentassistant', 'scheduled-tasks');
 const TASKS_FILE = path.join(TASKS_DIR, 'tasks.json');
@@ -37,7 +44,7 @@ if (!fs.existsSync(TASKS_DIR)) {
 export interface ScheduledTask {
   id: string;
   name: string;
-  type: 'email' | 'command' | 'custom';
+  type: 'email' | 'command' | 'custom' | 'nlscript';
   schedule: string; // Cron expression
   scheduleDescription: string; // Human-readable schedule
   enabled: boolean;
@@ -45,16 +52,19 @@ export interface ScheduledTask {
   lastRun?: string;
   nextRun?: string;
   runCount: number;
-  
+
   // Email-specific fields
   emailTo?: string;
   emailSubject?: string;
   emailBody?: string;
   emailAccount?: string;
-  
+
   // Command-specific fields
   command?: string;
-  
+
+  // NL Script-specific fields
+  nlScriptName?: string;
+
   // Custom action fields
   action?: string;
   payload?: any;
@@ -190,8 +200,19 @@ async function executeTask(task: ScheduledTask): Promise<void> {
       const cmdResult = await executeCommandSkill.execute({
         command: task.command!
       });
-      
+
       logger.info({ taskId: task.id, result: cmdResult }, 'Scheduled command executed');
+
+    } else if (task.type === 'nlscript') {
+      if (!nlScriptRunner) {
+        logger.error({ taskId: task.id }, 'NL script runner not initialized — skipping task');
+      } else if (!task.nlScriptName) {
+        logger.error({ taskId: task.id }, 'nlScriptName missing on nlscript task — skipping');
+      } else {
+        logger.info({ taskId: task.id, scriptName: task.nlScriptName }, 'Running NL script via AI loop');
+        await nlScriptRunner(task.nlScriptName);
+        logger.info({ taskId: task.id, scriptName: task.nlScriptName }, 'NL script completed');
+      }
     }
     
     // Update task run statistics
@@ -279,17 +300,20 @@ export const createScheduledTaskSkill = {
   
   async execute(params: {
     name: string;
-    type: 'email' | 'command';
+    type: 'email' | 'command' | 'nlscript';
     schedule: string;
-    
+
     // Email task fields
     emailTo?: string;
     emailSubject?: string;
     emailBody?: string;
     emailAccount?: string;
-    
+
     // Command task fields
     command?: string;
+
+    // NL Script task fields
+    nlScriptName?: string;
   }): Promise<any> {
     try {
       const { name, type, schedule } = params;
@@ -350,6 +374,17 @@ export const createScheduledTaskSkill = {
           };
         }
         logger.info({ command: params.command }, '✅ Command parameters validated');
+      } else if (type === 'nlscript') {
+        if (!params.nlScriptName) {
+          const error = 'NL Script tasks require: nlScriptName';
+          logger.warn({ params }, error);
+          return {
+            success: false,
+            error,
+            message: `❌ ${error}`
+          };
+        }
+        logger.info({ nlScriptName: params.nlScriptName }, '✅ NL Script parameters validated');
       }
       
       logger.info('🔄 Creating task object...');
@@ -369,8 +404,10 @@ export const createScheduledTaskSkill = {
         emailSubject: params.emailSubject,
         emailBody: params.emailBody,
         emailAccount: params.emailAccount,
-        
-        command: params.command
+
+        command: params.command,
+
+        nlScriptName: params.nlScriptName,
       };
       
       logger.info({ taskId: task.id }, '🔄 Saving task to storage...');
@@ -455,10 +492,12 @@ export const listScheduledTasksSkill = {
         runCount: task.runCount,
         
         // Include details based on type
-        details: task.type === 'email' 
+        details: task.type === 'email'
           ? `To: ${task.emailTo}, Subject: ${task.emailSubject}`
           : task.type === 'command'
           ? `Command: ${task.command}`
+          : task.type === 'nlscript'
+          ? `NL Script: ${task.nlScriptName}`
           : ''
       }));
       

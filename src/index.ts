@@ -16,7 +16,9 @@ import { TelegramGateway } from './gateways/TelegramGateway';
 import { WebChatGateway } from './gateways/WebChatGateway';
 import { WhatsAppGateway } from './gateways/WhatsAppGateway';
 import { DiscordGateway } from './gateways/DiscordGateway';
-import { initializeScheduler } from './skills/SchedulingSkills';
+import { initializeScheduler, setNLScriptRunner } from './skills/SchedulingSkills';
+import { getScript } from './utils/NLScriptManager.js';
+import { AI_TOOLS as TOOL_DEFINITIONS, AIToolExecutor } from './utils/AITools';
 import {
   echoSkill,
   weatherSkill,
@@ -424,6 +426,42 @@ async function initializeSystem(): Promise<void> {
 
   // 8. Initialize Task Scheduler
   initializeScheduler();
+
+  // Register NL script runner so scheduled nlscript tasks can invoke the AI loop
+  if (aiProvider) {
+    const scheduledToolExecutor = new AIToolExecutor(orchestrator, aiProvider);
+    setNLScriptRunner(async (scriptName: string) => {
+      const script = getScript(scriptName);
+      if (!script) {
+        logger.error({ scriptName }, 'Scheduled NL script not found');
+        return;
+      }
+      const prompt = `Execute this script named "${scriptName}":\n${script.steps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n')}`;
+      const history: any[] = [{ role: 'user', content: prompt }];
+      const MAX_ITER = 60;
+      for (let iter = 0; iter < MAX_ITER; iter++) {
+        const response = await aiProvider!.chatCompletion(history, TOOL_DEFINITIONS as any);
+        if (response.toolCalls?.length) {
+          history.push({ role: 'assistant', content: response.content || '', tool_calls: response.toolCalls });
+          for (const tc of response.toolCalls) {
+            let args: any;
+            try { args = JSON.parse(tc.function.arguments); } catch { args = {}; }
+            try {
+              const result = await scheduledToolExecutor.execute(tc.function.name, args);
+              logger.info({ scriptName, tool: tc.function.name }, 'Scheduled NL script tool result');
+              history.push({ role: 'tool', content: JSON.stringify(result), tool_call_id: tc.id, name: tc.function.name });
+            } catch (e: any) {
+              history.push({ role: 'tool', content: JSON.stringify({ error: e.message }), tool_call_id: tc.id, name: tc.function.name });
+            }
+          }
+        } else {
+          logger.info({ scriptName, response: response.content?.slice(0, 200) }, 'Scheduled NL script completed');
+          break;
+        }
+      }
+    });
+  }
+
   logger.info('✅ Task scheduler initialized');
 
   logger.info('🎉 System initialized successfully!');
@@ -526,8 +564,8 @@ async function startServer(): Promise<void> {
     // Setup routes
     setupRoutes();
 
-    // Start Express server
-    app.listen(API_PORT, () => {
+    // Start Express server — bind to loopback only; not exposed externally
+    app.listen(API_PORT, '127.0.0.1', () => {
       logger.info(`🌐 API server running on http://localhost:${API_PORT}`);
       logger.info(`📊 Health check: http://localhost:${API_PORT}/health`);
       logger.info(`📋 Status endpoint: http://localhost:${API_PORT}/api/status`);

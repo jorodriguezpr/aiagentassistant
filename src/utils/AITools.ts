@@ -665,7 +665,7 @@ export const AI_TOOLS: AITool[] = [
   },
   {
     name: 'create_scheduled_task',
-    description: 'Schedule a recurring task for automation (emails, local commands, remote SSH commands, system checks). Supports natural language schedules. For multi-step tasks, combine steps into single command. For remote servers, use full SSH command with key path.',
+    description: 'Schedule a recurring task for automation (emails, local commands, remote SSH commands, system checks, or NL scripts). Supports natural language schedules.',
     parameters: {
       type: 'object',
       properties: {
@@ -675,8 +675,8 @@ export const AI_TOOLS: AITool[] = [
         },
         type: {
           type: 'string',
-          enum: ['email', 'command'],
-          description: 'Type of task: "email" to send automated emails, "command" to run local/remote commands',
+          enum: ['email', 'command', 'nlscript'],
+          description: 'Type of task: "email" to send automated emails, "command" to run local/remote commands, "nlscript" to run a saved NL script via the AI',
         },
         schedule: {
           type: 'string',
@@ -701,6 +701,10 @@ export const AI_TOOLS: AITool[] = [
         command: {
           type: 'string',
           description: 'For command tasks: shell command to execute. For remote servers, use full SSH syntax: ssh -i /path/to/key user@host "remote_command". Escape quotes properly with backslashes.',
+        },
+        nlScriptName: {
+          type: 'string',
+          description: 'For nlscript tasks: the exact name of the saved NL script to run (use list_nl_scripts to find names)',
         },
       },
       required: ['name', 'type', 'schedule'],

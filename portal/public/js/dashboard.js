@@ -480,10 +480,15 @@ async function loadScheduledTasks() {
 }
 
 function renderScheduledTasks(tasks) {
-  document.getElementById('scheduledTasksTable').innerHTML = tasks.map(t =>
-    `<tr>
-      <td class="fw-semibold">${escHtml(t.name)}</td>
-      <td><span class="badge bg-secondary">${escHtml(t.type||'')}</span></td>
+  document.getElementById('scheduledTasksTable').innerHTML = tasks.map(t => {
+    const typeBadge = t.type === 'nlscript'
+      ? '<span class="badge bg-info text-dark">NL Script</span>'
+      : `<span class="badge bg-secondary">${escHtml(t.type||'')}</span>`;
+    const detail = t.type === 'nlscript' && t.nlScriptName
+      ? `<div class="small text-muted font-monospace">${escHtml(t.nlScriptName)}</div>` : '';
+    return `<tr>
+      <td class="fw-semibold">${escHtml(t.name)}${detail}</td>
+      <td>${typeBadge}</td>
       <td class="text-muted small font-monospace">${escHtml(t.scheduleDescription||t.schedule||'')}</td>
       <td>
         <div class="form-check form-switch mb-0">
@@ -495,8 +500,8 @@ function renderScheduledTasks(tasks) {
       <td class="text-end">
         <button class="btn btn-sm btn-outline-danger" onclick="deleteTask('${escHtml(t.id)}','${escHtml(t.name)}')"><i class="bi bi-trash"></i></button>
       </td>
-    </tr>`
-  ).join('') || '<tr><td colspan="7" class="text-muted text-center py-3">No scheduled tasks</td></tr>';
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" class="text-muted text-center py-3">No scheduled tasks</td></tr>';
 }
 
 async function toggleTask(id, enabled) {
