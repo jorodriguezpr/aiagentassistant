@@ -95,6 +95,10 @@ export const TOOL_CATEGORIES: Record<string, ToolCategory> = {
     keywords: ['email', 'mail', 'send', 'message', 'inbox', 'smtp', 'imap'],
     toolNames: ['send_email', 'read_emails', 'list_email_accounts', 'set_default_email_account'],
   },
+  hcp: {
+    keywords: ['sysadminhcp', 'panel', 'control panel', 'ticket', 'tickets', 'support ticket', 'client', 'clients', 'suspend', 'unsuspend', 'intrusion', 'blocked ip', 'attacker', 'hosting panel', 'admin panel'],
+    toolNames: ['hcp_get_system_health', 'hcp_list_tickets', 'hcp_get_ticket', 'hcp_list_clients', 'hcp_get_intrusion_activity'],
+  },
   web: {
     keywords: ['search', 'web', 'google', 'bing', 'url', 'website', 'fetch', 'scrape', 'internet', 'online'],
     toolNames: ['web_search', 'fetch_web_content', 'search_and_extract', 'find_financial_sources'],

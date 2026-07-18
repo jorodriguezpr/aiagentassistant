@@ -13,6 +13,8 @@ import logger, { traceStore } from './logger';
 import { eventBus } from './EventBus';
 import { SkillGenerator } from './SkillGenerator.js';
 import { getCredentialManager } from './CredentialManager';
+import { getHcpApiClient } from './HcpApiClient';
+import { HCP_TOOLS } from '../tools/hcpTools';
 import {
   sendEmailSkill,
   readEmailSkill,
@@ -2623,6 +2625,7 @@ export const AI_TOOLS: AITool[] = [
       required: ['host'],
     },
   },
+  ...HCP_TOOLS,
 ];
 
 /**
@@ -2756,6 +2759,21 @@ export class AIToolExecutor {
 
         case 'remove_package':
           return await this.removePackage(args.packages);
+
+        case 'hcp_get_system_health':
+          return await this.hcpGetSystemHealth();
+
+        case 'hcp_list_tickets':
+          return await this.hcpListTickets(args.status);
+
+        case 'hcp_get_ticket':
+          return await this.hcpGetTicket(args.id);
+
+        case 'hcp_list_clients':
+          return await this.hcpListClients();
+
+        case 'hcp_get_intrusion_activity':
+          return await this.hcpGetIntrusionActivity();
 
         case 'get_credential':
           return await this.getCredential(args.key);
@@ -3428,6 +3446,53 @@ export class AIToolExecutor {
   /**
    * Get a credential from kernel keyring
    */
+  // ─── SysAdminHCP bridge (read-only) ───────────────────────────────────────
+
+  private async hcpGetSystemHealth(): Promise<any> {
+    try {
+      const health = await getHcpApiClient().getSystemHealth();
+      return { success: true, ...health };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpListTickets(status?: string): Promise<any> {
+    try {
+      const result = await getHcpApiClient().listTickets(status);
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpGetTicket(id: string): Promise<any> {
+    try {
+      const result = await getHcpApiClient().getTicket(id);
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpListClients(): Promise<any> {
+    try {
+      const result = await getHcpApiClient().listClients();
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpGetIntrusionActivity(): Promise<any> {
+    try {
+      const result = await getHcpApiClient().getIntrusionActivity();
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
   private async getCredential(key: string): Promise<any> {
     logger.info({ key }, 'Retrieving credential');
 

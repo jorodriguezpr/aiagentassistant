@@ -19,6 +19,7 @@ import { DiscordGateway } from './gateways/DiscordGateway';
 import { initializeScheduler, setNLScriptRunner } from './skills/SchedulingSkills';
 import { getScript } from './utils/NLScriptManager.js';
 import { AI_TOOLS as TOOL_DEFINITIONS, AIToolExecutor } from './utils/AITools';
+import { AutonomousMonitor } from './core/AutonomousMonitor';
 import {
   echoSkill,
   weatherSkill,
@@ -460,6 +461,18 @@ async function initializeSystem(): Promise<void> {
         }
       }
     });
+
+    // Autonomous Monitor — 5-minute observation-only check cycle (system health,
+    // open tickets, intrusion activity). Reuses the same tool executor built
+    // above; no panel-mutating action happens in this phase.
+    const autonomousMonitor = new AutonomousMonitor(scheduledToolExecutor, telegramGateway);
+    setInterval(() => {
+      autonomousMonitor.runCycle().catch(e => logger.error({ error: e.message }, 'AutonomousMonitor cycle failed'));
+    }, 5 * 60 * 1000);
+    setTimeout(() => {
+      autonomousMonitor.runCycle().catch(e => logger.error({ error: e.message }, 'AutonomousMonitor initial cycle failed'));
+    }, 30 * 1000);
+    logger.info('✅ Autonomous Monitor scheduled (5-minute cycle, observation-only)');
   }
 
   logger.info('✅ Task scheduler initialized');
