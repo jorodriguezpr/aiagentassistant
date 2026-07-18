@@ -1,630 +1,802 @@
-{
-  "version": "1.0",
-  "savedAt": "2026-06-03T16:32:01.944Z",
-  "playbookCount": 4,
-  "playbooks": [
-    {
-      "id": "pb_1779758540839_baugv",
-      "title": "Install ISPConfig 3 on Ubuntu 22.04 LTS (Full Perfect Server)",
-      "description": "Complete installation of ISPConfig 3 control panel on a fresh Ubuntu 22.04 LTS server. Includes Apache2, PHP 5.6-8.5 multi-version, MariaDB, Postfix, Dovecot, BIND9, PureFTPd, rspamd, ClamAV, Fail2ban, Roundcube webmail, phpMyAdmin, and Let's Encrypt (acme.sh). CRITICAL: Fix BIND9 forwarders before running installer or DNS check will fail. ISPConfig panel is accessible at https://HOST:8080 after installation. Tested on: server s1.technologixpr.com (192.254.73.46), Proxmox VE, 2GB RAM, 60GB disk.",
-      "category": "install",
-      "keywords": [
-        "ispconfig",
-        "ispconfig3",
-        "control panel",
-        "hosting",
-        "web hosting",
-        "ubuntu",
-        "ubuntu 22.04",
-        "jammy",
-        "lamp",
-        "apache",
-        "php",
-        "mariadb",
-        "mysql",
-        "postfix",
-        "dovecot",
-        "bind9",
-        "dns",
-        "ftp",
-        "pureftpd",
-        "clamav",
-        "fail2ban",
-        "roundcube",
-        "webmail",
-        "phpmyadmin",
-        "perfect server",
-        "vps",
-        "dedicated",
-        "install"
-      ],
-      "targetOS": "ubuntu",
-      "targetService": "ispconfig",
-      "steps": [
-        {
-          "description": "Verify SSH connectivity and check OS version",
-          "command": "ssh root@<HOST> 'echo OK && uname -a && cat /etc/os-release | head -4'",
-          "expectedOutput": "Ubuntu 22.04",
-          "success": true,
-          "stepNumber": 1,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Enable root password SSH login (PasswordAuthentication yes in sshd_config)",
-          "command": "sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && systemctl restart sshd",
-          "expectedOutput": "",
-          "success": true,
-          "stepNumber": 2,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Update apt package lists",
-          "command": "DEBIAN_FRONTEND=noninteractive apt-get update -y",
-          "expectedOutput": "Reading package lists... Done",
-          "success": true,
-          "stepNumber": 3,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Upgrade all installed packages",
-          "command": "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
-          "expectedOutput": "done.",
-          "success": true,
-          "stepNumber": 4,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Install screen, wget, curl (needed for installer)",
-          "command": "DEBIAN_FRONTEND=noninteractive apt-get install -y screen wget curl",
-          "expectedOutput": "Setting up screen",
-          "success": true,
-          "stepNumber": 5,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Download the ISPConfig auto-installer script",
-          "command": "wget -O /root/ispconfig-installer.sh https://get.ispconfig.org",
-          "expectedOutput": "saved",
-          "success": true,
-          "stepNumber": 6,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "CRITICAL: Fix BIND9 forwarders BEFORE running installer to prevent DNS check failure",
-          "command": "cat > /etc/bind/named.conf.options << 'EOF'\noptions {\n    directory \"/var/cache/bind\";\n    recursion yes;\n    forwarders {\n        8.8.8.8;\n        8.8.4.4;\n        1.1.1.1;\n    };\n    forward first;\n    dnssec-validation no;\n    listen-on-v6 { any; };\n    allow-query { any; };\n};\nEOF",
-          "expectedOutput": "",
-          "success": true,
-          "stepNumber": 7,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Launch ISPConfig installer in screen session with output logged to file",
-          "command": "screen -dmS ispconfig bash -c \"bash /root/ispconfig-installer.sh --use-ftp-ports=40110-40210 --unattended-upgrades --no-quota 2>&1 | tee /root/ispconfig-install.log; echo ISPCONFIG_INSTALL_DONE >> /root/ispconfig-install.log\"",
-          "expectedOutput": "",
-          "success": true,
-          "stepNumber": 8,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Wait for installer to load PHP then send \"yes\" confirmation to screen session",
-          "command": "sleep 60 && screen -S ispconfig -X stuff 'yes\\n'",
-          "expectedOutput": "",
-          "success": true,
-          "stepNumber": 9,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Poll log file every 2 minutes until ISPCONFIG_INSTALL_DONE marker appears (30-60 min total)",
-          "command": "tail -f /root/ispconfig-install.log | grep -m1 'ISPCONFIG_INSTALL_DONE'",
-          "expectedOutput": "ISPCONFIG_INSTALL_DONE",
-          "success": true,
-          "stepNumber": 10,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Extract ISPConfig admin password and MySQL root password from log",
-          "command": "grep -E 'admin password|MySQL root password' /root/ispconfig-install.log",
-          "expectedOutput": "Your ISPConfig admin password is:",
-          "success": true,
-          "stepNumber": 11,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Verify ISPConfig port 8080 is listening (Apache running)",
-          "command": "ss -tlnp | grep ':8080'",
-          "expectedOutput": "apache2",
-          "success": true,
-          "stepNumber": 12,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Verify all key services are running",
-          "command": "systemctl is-active apache2 mariadb postfix dovecot bind9 pure-ftpd-mysql",
-          "expectedOutput": "active",
-          "success": true,
-          "stepNumber": 13,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        },
-        {
-          "description": "Delete installer log files containing passwords for security",
-          "command": "rm -f /root/ispconfig-install*.log && rm -rf /root/ispconfig-install-log/",
-          "expectedOutput": "",
-          "success": true,
-          "stepNumber": 14,
-          "timestamp": "2026-05-26T01:22:20.839Z"
-        }
-      ],
-      "successCount": 1,
-      "failureCount": 0,
-      "createdAt": "2026-05-26T01:22:20.839Z",
-      "updatedAt": "2026-05-26T01:22:20.839Z",
-      "notes": "KEY LESSONS LEARNED:\n1. BIND9 forwarders MUST be configured before installer runs. The installer starts BIND9 mid-way and if forwarders are not set, the DNS check in the PHP installer fails.\n2. Use screen to keep installer alive across SSH disconnects.\n3. The installer asks \"yes\" confirmation â€” send via: screen -S ispconfig -X stuff \"yes\\n\"\n4. First run takes 45-60 min. If it fails and you re-run, subsequent runs are faster (15-20 min) because packages are cached.\n5. ISPConfig panel: https://HOST:8080 (port 8080, not 80)\n6. Credentials are printed in the log: grep -E \"admin password|MySQL root\" /root/ispconfig-install.log\n7. Delete log files after noting credentials (they contain plaintext passwords).\n8. ClamAV may fail to update during install due to DNS timing â€” not critical, it will self-update after BIND9 stabilizes.",
-      "author": "Jose Rodriguez Arroyo",
-      "version": 1
-    },
-    {
-      "id": "pb_cwp_almalinux8_2026",
-      "title": "Install CWP (Control Web Panel) on AlmaLinux 8 / Rocky Linux 8 / CentOS 8",
-      "description": "Complete installation of CWP (Control Web Panel) on AlmaLinux 8, Rocky Linux 8, or CentOS 8. CWP is a free web hosting control panel (alternative to cPanel). Installs Apache (compiled from source), PHP multi-version, MariaDB, Postfix, Dovecot, ProFTPD, DNS, Webmail. Admin panel accessible at http://SERVER_IP:2030 (HTTP) or https://SERVER_IP:2031 (HTTPS) after installation and reboot. Tested on: AlmaLinux 8.10, Proxmox VE, 2GB RAM, 60GB disk. Installation takes 30-60 minutes (Apache compiled from source).",
-      "category": "install",
-      "keywords": [
-        "cwp",
-        "control web panel",
-        "centos web panel",
-        "webpanel",
-        "hosting panel",
-        "web hosting",
-        "almalinux",
-        "almalinux 8",
-        "rocky linux",
-        "centos 8",
-        "rhel 8",
-        "lamp",
-        "apache",
-        "php",
-        "mariadb",
-        "mysql",
-        "postfix",
-        "dovecot",
-        "proftpd",
-        "dns",
-        "control panel",
-        "cpanel alternative",
-        "vps",
-        "dedicated",
-        "install",
-        "el8"
-      ],
-      "targetOS": "almalinux",
-      "targetService": "cwp",
-      "steps": [
-        {
-          "stepNumber": 1,
-          "description": "Verify SSH connectivity, OS version, RAM and disk â€” minimum 2GB RAM, 20GB free disk, AlmaLinux/Rocky/CentOS 8",
-          "command": "cat /etc/os-release | head -4 && echo '---' && free -m | head -2 && echo '---' && df -h / | tail -1",
-          "expectedOutput": "AlmaLinux",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 2,
-          "description": "Check for conflicting services â€” CWP requires a FRESH minimal install. Stop any existing httpd/nginx/apache before proceeding.",
-          "command": "systemctl list-units --state=running --type=service | grep -E 'httpd|nginx|apache|cpanel|plesk|webmin|cwp' || echo 'No conflicts found'",
-          "expectedOutput": "No conflicts found",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 3,
-          "description": "Download the CWP installer for EL8 (AlmaLinux 8 / Rocky Linux 8) using curl with redirect follow",
-          "command": "cd /usr/local/src && curl -LsO http://centos-webpanel.com/cwp-el8-latest && ls -lh cwp-el8-latest",
-          "expectedOutput": "50K",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 4,
-          "description": "Launch CWP installer in background with nohup â€” output logged to /var/log/cwp-install.log. Installation takes 30-60 minutes (compiles Apache from source).",
-          "command": "nohup bash /usr/local/src/cwp-el8-latest > /var/log/cwp-install.log 2>&1 & echo \"PID: $!\"",
-          "expectedOutput": "PID:",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 5,
-          "description": "Monitor installation progress â€” poll every 2 minutes. Installation is done when log contains 'CWP installation' or 'reboot' message.",
-          "command": "tail -50 /var/log/cwp-install.log",
-          "expectedOutput": "reboot",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 6,
-          "description": "Wait for installation to complete â€” grep log for completion marker. Re-run this check every 5 minutes until it returns output.",
-          "command": "grep -iE 'reboot|installation complete|cwp.*installed|setup complete' /var/log/cwp-install.log",
-          "expectedOutput": "reboot",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 7,
-          "description": "IMPORTANT: Reboot the server after CWP installation completes â€” required for CWP services to start properly.",
-          "command": "reboot",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 8,
-          "description": "After reboot (wait 2-3 minutes), verify CWP services are running â€” cwpsrv is the main CWP service.",
-          "command": "systemctl is-active cwpsrv && systemctl is-active httpd && systemctl is-active mariadb && echo 'All CWP services running'",
-          "expectedOutput": "All CWP services running",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 9,
-          "description": "Open required firewall ports for CWP: 2030 (admin HTTP), 2031 (admin HTTPS), 80, 443, 25, 465, 587, 110, 143, 993, 995, 21, 20, 8080-8090",
-          "command": "firewall-cmd --permanent --add-port=2030/tcp --add-port=2031/tcp --add-port=80/tcp --add-port=443/tcp --add-port=25/tcp --add-port=465/tcp --add-port=587/tcp --add-port=110/tcp --add-port=143/tcp --add-port=993/tcp --add-port=995/tcp --add-port=21/tcp && firewall-cmd --reload && echo 'Firewall rules applied'",
-          "expectedOutput": "success",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 10,
-          "description": "Retrieve the MySQL root password set by CWP installer",
-          "command": "cat /etc/cwp/.mysql_password 2>/dev/null || grep -i 'mysql\\|password\\|root' /var/log/cwp-install.log | tail -5",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 11,
-          "description": "Verify CWP admin panel port 2030 is listening",
-          "command": "ss -tlnp | grep ':2030'",
-          "expectedOutput": "2030",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 12,
-          "description": "Verify all key CWP services are running after reboot",
-          "command": "for svc in cwpsrv httpd mariadb postfix dovecot proftpd; do echo -n \"$svc: \"; systemctl is-active $svc 2>/dev/null || echo inactive; done",
-          "expectedOutput": "active",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        },
-        {
-          "stepNumber": 13,
-          "description": "Access CWP Admin Panel at http://SERVER_IP:2030 â€” login with root and the server root password. HTTPS panel at https://SERVER_IP:2031",
-          "command": "echo 'CWP Admin Panel: http://$(hostname -I | awk \"{print \\$1}\"):2030'",
-          "expectedOutput": "http://",
-          "success": true,
-          "timestamp": "2026-06-03T00:53:00.000Z"
-        }
-      ],
-      "successCount": 1,
-      "failureCount": 0,
-      "createdAt": "2026-06-03T00:53:00.000Z",
-      "updatedAt": "2026-06-03T00:53:00.000Z",
-      "notes": "KEY LESSONS LEARNED:\n1. Server MUST be a fresh minimal AlmaLinux 8/Rocky 8/CentOS 8 install â€” CWP has no uninstaller.\n2. Minimum 2GB RAM required; 4GB recommended.\n3. Use curl -L (follow redirects) to download installer â€” the centos-webpanel.com URL returns a 301 redirect to dl1.centos-webpanel.com. wget without -L will fail.\n4. wget is often NOT installed on minimal AlmaLinux â€” use curl instead.\n5. Run installer with nohup in background; it takes 30-60 minutes and compiles Apache from source.\n6. A REBOOT is REQUIRED after installation completes â€” CWP services will not start without it.\n7. Admin panel: http://SERVER_IP:2030 (HTTP) or https://SERVER_IP:2031 (HTTPS). Login: root / server-root-password.\n8. CWP user panel (for hosting users): http://SERVER_IP:2082.\n9. MySQL password is saved in /etc/cwp/.mysql_password after installation.\n10. Tested on: AlmaLinux 8.10, 2GB RAM, 60GB disk, s1.technologixpr.com (192.254.73.46).\n11. For EL7 (CentOS 7): use installer URL http://centos-webpanel.com/cwp-el7-latest instead.",
-      "author": "Jose Rodriguez Arroyo",
-      "version": 1
-    },
-    {
-      "id": "pb_1780127378506_391le",
-      "title": "Install KloxoNG on AlmaLinux 8",
-      "description": "Complete installation of KloxoNG (open-source web hosting control panel, fork of Kloxo) on AlmaLinux 8. Includes Apache, PHP, MySQL/MariaDB, Postfix, Dovecot, ProFTPD, DNS. Admin panel accessible at http://SERVER_IP:7776 (HTTP) or https://SERVER_IP:7777 (HTTPS). Default login: admin / admin123 â€” MUST be changed immediately. Tested on AlmaLinux 8.",
-      "category": "install",
-      "keywords": [
-        "kloxo",
-        "kloxong",
-        "kloxo-ng",
-        "hosting panel",
-        "web hosting",
-        "control panel",
-        "almalinux",
-        "almalinux 8",
-        "centos",
-        "rhel",
-        "lamp",
-        "apache",
-        "php",
-        "mysql",
-        "mariadb",
-        "postfix",
-        "dovecot",
-        "proftpd",
-        "ftp",
-        "dns",
-        "cpanel alternative",
-        "vps",
-        "dedicated",
-        "install",
-        "el8"
-      ],
-      "targetOS": "almalinux",
-      "targetService": "kloxong",
-      "steps": [
-        {
-          "stepNumber": 1,
-          "description": "Verify SSH connectivity, OS version, RAM and disk â€” AlmaLinux 8, minimum 1GB RAM, 20GB free disk",
-          "command": "cat /etc/os-release | head -4 && free -m | head -2 && df -h / | tail -1",
-          "expectedOutput": "AlmaLinux",
-          "success": true,
-          "timestamp": "2026-05-30T07:10:00.000Z"
-        },
-        {
-          "stepNumber": 2,
-          "description": "Set a valid Fully Qualified Domain Name (FQDN) as the server hostname â€” required by KloxoNG",
-          "command": "hostnamectl set-hostname server.yourdomain.com && hostname -f",
-          "expectedOutput": "server.yourdomain.com",
-          "success": true,
-          "timestamp": "2026-05-30T07:10:00.000Z"
-        },
-        {
-          "stepNumber": 3,
-          "description": "Update all system packages to latest versions",
-          "command": "dnf update -y",
-          "expectedOutput": "Complete!",
-          "success": true,
-          "timestamp": "2026-05-30T07:10:00.000Z"
-        },
-        {
-          "stepNumber": 4,
-          "description": "Install prerequisites â€” curl, wget, and other tools needed by the installer",
-          "command": "dnf install -y curl wget tar gzip",
-          "expectedOutput": "Complete!",
-          "success": true,
-          "timestamp": "2026-05-30T07:10:00.000Z"
-        },
-        {
-          "stepNumber": 5,
-          "description": "Download KloxoNG installer script for AlmaLinux 8 / EL8",
-          "command": "curl -O https://kloxo.org/kloxo8/kloxo.sh",
-          "expectedOutput": "100",
-          "success": true,
-          "timestamp": "2026-05-30T07:16:48.472Z"
-        },
-        {
-          "stepNumber": 6,
-          "description": "Make the installer script executable",
-          "command": "chmod +x kloxo.sh",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 7,
-          "description": "Launch KloxoNG installer in background with nohup â€” logs to /var/log/kloxo-install.log. Installation takes 20-40 minutes.",
-          "command": "nohup bash kloxo.sh > /var/log/kloxo-install.log 2>&1 & echo \"PID: $!\"",
-          "expectedOutput": "PID:",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 8,
-          "description": "Monitor installation progress â€” tail the log file. Check every few minutes.",
-          "command": "tail -30 /var/log/kloxo-install.log",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 9,
-          "description": "Wait for installation to complete â€” poll for completion marker in log",
-          "command": "grep -iE 'installation complete|kloxo.*installed|setup complete|reboot|finished' /var/log/kloxo-install.log",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 10,
-          "description": "Open required firewall ports â€” 7776 (admin HTTP), 7777 (admin HTTPS), 80, 443, 25, 110, 143, 465, 587, 993, 995, 21",
-          "command": "firewall-cmd --permanent --add-port=7776/tcp --add-port=7777/tcp --add-port=80/tcp --add-port=443/tcp --add-port=25/tcp --add-port=110/tcp --add-port=143/tcp --add-port=465/tcp --add-port=587/tcp --add-port=993/tcp --add-port=995/tcp --add-port=21/tcp && firewall-cmd --reload",
-          "expectedOutput": "success",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 11,
-          "description": "Reboot server if required by installer (check log for reboot message)",
-          "command": "reboot",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 12,
-          "description": "After reboot, verify KloxoNG main service (kloxo) is running",
-          "command": "systemctl is-active kloxo && systemctl is-active httpd && systemctl is-active mysqld && echo 'KloxoNG services running'",
-          "expectedOutput": "KloxoNG services running",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 13,
-          "description": "Verify KloxoNG admin panel port 7776 is listening",
-          "command": "ss -tlnp | grep ':7776'",
-          "expectedOutput": "7776",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 14,
-          "description": "Access KloxoNG Admin Panel at http://SERVER_IP:7776 â€” default login: admin / admin123. HTTPS at https://SERVER_IP:7777",
-          "command": "echo 'KloxoNG Admin: http://SERVER_IP:7776 â€” login: admin / admin123 (CHANGE IMMEDIATELY)'",
-          "expectedOutput": "KloxoNG Admin",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        },
-        {
-          "stepNumber": 15,
-          "description": "Change the default admin password immediately after first login via Admin > Users > admin > Change Password",
-          "command": "echo 'Login at http://SERVER_IP:7776 and change password: Admin > Users > admin > Change Password'",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-05-30T07:17:30.106Z"
-        }
-      ],
-      "successCount": 1,
-      "failureCount": 0,
-      "createdAt": "2026-05-30T07:17:30.106Z",
-      "updatedAt": "2026-06-03T01:15:00.000Z",
-      "notes": "KEY LESSONS LEARNED:\n1. KloxoNG installer URL for EL8 (AlmaLinux 8 / Rocky 8): https://kloxo.org/kloxo8/kloxo.sh\n2. Server must have a valid FQDN set as hostname before installation.\n3. Run with nohup in background; log to /var/log/kloxo-install.log.\n4. Admin panel ports: 7776 (HTTP) and 7777 (HTTPS).\n5. Default credentials: admin / admin123 â€” change immediately after first login.\n6. User hosting panel: http://SERVER_IP:7778.\n7. Firewall must allow ports 7776, 7777 for admin access.\n8. NOTE: Some steps in this playbook were reconstructed on 2026-06-03 after the original was accidentally deleted. The core installer steps (download, chmod, run) were preserved from command history (IDs: cmd_1780125408472_zv8j, cmd_1780125450106_jnau).",
-      "author": "Jose Rodriguez Arroyo",
-      "version": 1
-    },
-    {
-      "id": "pb_cpanel_almalinux8_2026",
-      "title": "Install cPanel/WHM on AlmaLinux 8",
-      "description": "Complete installation of cPanel & WHM (Web Host Manager) on AlmaLinux 8. cPanel is the industry-standard commercial web hosting control panel. WHM admin panel at https://SERVER_IP:2087, cPanel user panel at https://SERVER_IP:2083. Requires a valid cPanel license (15-day free trial available). Installation takes 30-60 minutes. Tested on: AlmaLinux 8.10, 2GB RAM, 60GB disk, 104.152.185.78.",
-      "category": "install",
-      "keywords": [
-        "cpanel",
-        "whm",
-        "cpanel whm",
-        "web host manager",
-        "hosting panel",
-        "web hosting",
-        "control panel",
-        "almalinux",
-        "almalinux 8",
-        "centos",
-        "rhel",
-        "el8",
-        "apache",
-        "php",
-        "mysql",
-        "mariadb",
-        "postfix",
-        "dovecot",
-        "exim",
-        "proftpd",
-        "ftp",
-        "dns",
-        "bind",
-        "cpanel alternative",
-        "vps",
-        "dedicated",
-        "install",
-        "license"
-      ],
-      "targetOS": "almalinux",
-      "targetService": "cpanel",
-      "steps": [
-        {
-          "stepNumber": 1,
-          "description": "Verify SSH connectivity, OS version, RAM and disk — AlmaLinux 8, minimum 2GB RAM, 20GB free disk, x86_64",
-          "command": "cat /etc/os-release | head -5 && free -m | head -2 && df -h / | tail -1 && uname -m",
-          "expectedOutput": "AlmaLinux",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 2,
-          "description": "Ensure server has a valid FQDN hostname — cPanel requires a properly set fully-qualified domain name",
-          "command": "hostname -f",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 3,
-          "description": "PROXMOX VMs ONLY: Create /etc/fstab if missing — cPanel health check requires this file. Get root device from 'df -h /' and filesystem type from 'findmnt / --output SOURCE,FSTYPE'.",
-          "command": "[ -f /etc/fstab ] || ( ROOT_DEV=$(findmnt / -o SOURCE -n) && ROOT_FS=$(findmnt / -o FSTYPE -n) && echo \"$ROOT_DEV  /  $ROOT_FS  defaults  0  1\" > /etc/fstab && echo 'fstab created' )",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-06-03T18:53:00.000Z"
-        },
-        {
-          "stepNumber": 4,
-          "description": "Check for conflicting services — cPanel requires a fresh minimal install with no existing Apache, Nginx, or other panels",
-          "command": "systemctl list-units --state=running --type=service | grep -E 'httpd|nginx|apache|cwp|plesk|webmin' || echo 'No conflicts'",
-          "expectedOutput": "No conflicts",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 5,
-          "description": "Download the cPanel & WHM installer script (~73KB) from the official Cpanel download server",
-          "command": "cd /home && curl -o latest -L https://securedownloads.cpanel.net/latest && ls -lh latest",
-          "expectedOutput": "73K",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 6,
-          "description": "Launch the cPanel installer in background with nohup — logs to /var/log/cpanel-install.log. Takes 30-60 minutes.",
-          "command": "nohup sh /home/latest > /var/log/cpanel-install.log 2>&1 & echo \"PID: $!\"",
-          "expectedOutput": "PID:",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 7,
-          "description": "Monitor installation progress — tail the log every few minutes. Look for phase indicators like 'Installing packages', 'Configuring', 'Done'.",
-          "command": "tail -30 /var/log/cpanel-install.log",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 8,
-          "description": "Poll for installation completion — returns output when cPanel install is done",
-          "command": "grep -iE 'installation complete|cpanel.*installed|whm.*complete|Thank you for installing|all services are up' /var/log/cpanel-install.log",
-          "expectedOutput": "Thank you for installing",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 9,
-          "description": "Open required firewall ports — 2087/2086 (WHM), 2083/2082 (cPanel), 2095/2096 (Webmail), 80, 443, 21, 25, 465, 587, 110, 143, 993, 995",
-          "command": "firewall-cmd --permanent --add-port=2087/tcp --add-port=2086/tcp --add-port=2083/tcp --add-port=2082/tcp --add-port=2095/tcp --add-port=2096/tcp --add-port=80/tcp --add-port=443/tcp --add-port=21/tcp --add-port=25/tcp --add-port=465/tcp --add-port=587/tcp --add-port=110/tcp --add-port=143/tcp --add-port=993/tcp --add-port=995/tcp && firewall-cmd --reload",
-          "expectedOutput": "success",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 10,
-          "description": "Verify all key cPanel/WHM services are running after installation",
-          "command": "for svc in cpanel chkservd httpd exim dovecot named; do echo -n \"$svc: \"; systemctl is-active $svc 2>/dev/null || echo inactive; done",
-          "expectedOutput": "active",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 11,
-          "description": "Verify WHM port 2087 and cPanel port 2083 are listening",
-          "command": "ss -tlnp | grep -E ':2087|:2083|:2086|:2082'",
-          "expectedOutput": "2087",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 12,
-          "description": "Access WHM (Web Host Manager) admin panel at https://SERVER_IP:2087 — login with root and the server root password",
-          "command": "echo 'WHM Admin: https://SERVER_IP:2087 — login: root / server-root-password'",
-          "expectedOutput": "WHM Admin",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        },
-        {
-          "stepNumber": 13,
-          "description": "Complete the WHM initial setup wizard — set nameservers, contact email, and configure the server. cPanel user panel is at https://SERVER_IP:2083",
-          "command": "echo 'Complete WHM setup wizard at https://SERVER_IP:2087'",
-          "expectedOutput": "",
-          "success": true,
-          "timestamp": "2026-06-03T18:35:00.000Z"
-        }
-      ],
-      "successCount": 1,
-      "failureCount": 0,
-      "createdAt": "2026-06-03T18:35:00.000Z",
-      "updatedAt": "2026-06-03T16:32:01.944Z",
-      "notes": "KEY LESSONS LEARNED:\n1. cPanel requires AlmaLinux 8 (or Rocky 8, CloudLinux 8, Ubuntu 20.04/22.04) — check supported OS list at docs.cpanel.net.\n2. Installer URL: https://securedownloads.cpanel.net/latest — always use curl -L to follow redirects.\n3. Run installer with nohup in background, log to /var/log/cpanel-install.log.\n4. Installation takes 30-60 minutes — installs Exim (MTA), Apache, PHP, MySQL/MariaDB, Dovecot, BIND, ProFTPD.\n5. No reboot needed after cPanel install — services start automatically.\n6. WHM (admin): https://SERVER_IP:2087 — login: root / root-password.\n7. cPanel (user): https://SERVER_IP:2083.\n8. Webmail: https://SERVER_IP:2095.\n9. cPanel requires a paid license after 15-day trial — purchase at store.cpanel.net.\n10. Firewall ports: 2087, 2086 (WHM), 2083, 2082 (cPanel), 2095, 2096 (Webmail), plus standard mail/web ports.\n11. Tested on: AlmaLinux 8.10, 2GB RAM, 60GB disk, 104.152.185.78.\n12. PROXMOX VM FIX: If installer fails with 'missing /etc/fstab', create it: ROOT_DEV=$(findmnt / -o SOURCE -n) && echo \"$ROOT_DEV / ext4 defaults 0 1\" > /etc/fstab — then re-run the installer. This affects Proxmox-based VMs that boot without a traditional fstab.",
-      "author": "Jose Rodriguez Arroyo",
-      "version": 1
-    }
-  ]
+﻿{
+    "version":  "1.0",
+    "savedAt":  "2026-06-06T04:00:00.000Z",
+    "playbookCount":  5,
+    "playbooks":  [
+                      {
+                          "id":  "pb_kloxo_to_cwp_migration_2026",
+                          "title":  "Migrate Hosting Account from KloxoNG to CWP (Control Web Panel)",
+                          "description":  "Complete migration of a hosting account from a KloxoNG server (AlmaLinux 9, MariaDB 10.6, vpopmail, qmail) to a CWP server (AlmaLinux 8, MySQL 8, Postfix/Dovecot). Covers: web files (rsync), databases (MariaDB dump with sandbox comment strip), email accounts (Postfix PostfixAdmin-style DB + Maildir), and app config updates (.env, wp-config.php). Tested migrating microrepair.net (1.6GB files, 2 databases, 24 email accounts, 164MB mail) in 2026-06-06.",
+                          "category":  "migration",
+                          "keywords":  [
+                                           "kloxo",
+                                           "kloxong",
+                                           "cwp",
+                                           "control web panel",
+                                           "migration",
+                                           "migrate",
+                                           "account migration",
+                                           "hosting migration",
+                                           "web hosting",
+                                           "almalinux",
+                                           "mariadb",
+                                           "mysql",
+                                           "vpopmail",
+                                           "qmail",
+                                           "postfix",
+                                           "dovecot",
+                                           "maildir",
+                                           "rsync",
+                                           "email migration",
+                                           "database migration",
+                                           "vmail",
+                                           "postfixadmin",
+                                           "laravel",
+                                           "wordpress",
+                                           "wp-config"
+                                       ],
+                          "targetOS":  "almalinux",
+                          "targetService":  "cwp",
+                          "steps":  [
+                                        {
+                                            "stepNumber":  1,
+                                            "description":  "Inventory the KloxoNG source account: files, databases, email accounts, disk usage. Note SSH port (often 10022 on KloxoNG).",
+                                            "command":  "ssh -p 10022 root@KLOXO_HOST 'du -sh /home/USERNAME/ && mysql -e \"SHOW DATABASES;\" | grep USERNAME && ~vpopmail/bin/vuserinfo -D DOMAIN 2>/dev/null | grep name'",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  2,
+                                            "description":  "Install sshpass on KloxoNG (AlmaLinux 9) so it can push rsync/scp to the CWP server directly.",
+                                            "command":  "dnf install -y sshpass && which sshpass",
+                                            "expectedOutput":  "/usr/bin/sshpass",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  3,
+                                            "description":  "On CWP: create the system user and standard directory structure. Set password.",
+                                            "command":  "useradd -m -d /home/USERNAME -s /bin/bash USERNAME && echo 'USERNAME:PASSWORD' | chpasswd && mkdir -p /home/USERNAME/{public_html,.conf,backupcwp,tmp,cwp_stats} && chown -R USERNAME:USERNAME /home/USERNAME/ && chmod 711 /home/USERNAME && chown USERNAME:nobody /home/USERNAME/public_html",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  4,
+                                            "description":  "On CWP: add the account to root_cwp user and domains tables so CWP recognizes it.",
+                                            "command":  "mysql root_cwp -e \"INSERT IGNORE INTO user (username,domain,ip_address,email,setup_date,package,backup,reseller,bandwidth) VALUES ('USERNAME','DOMAIN','CWP_IP','webmaster@DOMAIN',NOW(),'1','none','',0);\"\nmysql root_cwp -e \"INSERT IGNORE INTO domains (domain,user,path,setup_time) VALUES ('DOMAIN','USERNAME','/home/USERNAME/public_html',NOW());\"",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  5,
+                                            "description":  "On CWP: create Apache vhost config at /usr/local/apache/conf.d/vhosts/DOMAIN.conf and reload Apache.",
+                                            "command":  "cat > /usr/local/apache/conf.d/vhosts/DOMAIN.conf << 'EOF'\n<VirtualHost CWP_IP:80>\n  ServerName DOMAIN\n  ServerAlias www.DOMAIN\n  ServerAdmin webmaster@DOMAIN\n  DocumentRoot /home/USERNAME/public_html\n  UseCanonicalName Off\n  CustomLog /usr/local/apache/domlogs/DOMAIN.bytes bytes\n  CustomLog /usr/local/apache/domlogs/DOMAIN.log combined\n  ErrorLog /usr/local/apache/domlogs/DOMAIN.error.log\n  <IfModule mod_suexec.c>\n    SuexecUserGroup USERNAME USERNAME\n  </IfModule>\n  <Directory /home/USERNAME/public_html>\n    AllowOverride All\n    Options +FollowSymLinks\n  </Directory>\n</VirtualHost>\nEOF\n/usr/local/apache/bin/apachectl -t && systemctl reload httpd",
+                                            "expectedOutput":  "Syntax OK",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  6,
+                                            "description":  "From KloxoNG: rsync the entire home directory to CWP using sshpass (skips .ssh). KloxoNG can reach CWP on port 22.",
+                                            "command":  "sshpass -p 'CWP_ROOT_PW' rsync -az --exclude='.ssh' -e 'ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password' /home/USERNAME/ root@CWP_HOST:/home/USERNAME/",
+                                            "expectedOutput":  "rsync exit: 0",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  7,
+                                            "description":  "On CWP: fix ownership after rsync. If public_html was a symlink on KloxoNG it will be preserved.",
+                                            "command":  "chown -R USERNAME:USERNAME /home/USERNAME/ && chown USERNAME:nobody /home/USERNAME/public_html && chmod 711 /home/USERNAME",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  8,
+                                            "description":  "On KloxoNG: dump each database with --no-tablespaces. CRITICAL: MariaDB 10.6+ dumps start with '/*M!999999\\- enable the sandbox mode */' which MySQL rejects — must strip line 1 on import.",
+                                            "command":  "mysqldump --no-tablespaces --single-transaction DBNAME > /tmp/DBNAME.sql\nsshpass -p 'CWP_ROOT_PW' scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password /tmp/DBNAME.sql root@CWP_HOST:/tmp/",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  9,
+                                            "description":  "On CWP: create the database, create the DB user (match credentials from app .env/wp-config), and import the dump stripping the MariaDB sandbox line.",
+                                            "command":  "mysql -e \"CREATE DATABASE IF NOT EXISTS DBNAME;\"\nmysql -e \"CREATE USER IF NOT EXISTS 'DBUSER'@'localhost' IDENTIFIED BY 'DBPASS';\"\nmysql -e \"GRANT ALL PRIVILEGES ON DBNAME.* TO 'DBUSER'@'localhost'; FLUSH PRIVILEGES;\"\nsed '1d' /tmp/DBNAME.sql | mysql DBNAME\nmysql -e \"SHOW TABLES FROM DBNAME;\" | wc -l",
+                                            "expectedOutput":  "tables",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  10,
+                                            "description":  "Read app config files (.env, wp-config.php) to get the exact DB usernames and passwords used by the application — create those exact MySQL users on CWP.",
+                                            "command":  "cat /home/USERNAME/.env | grep -E 'DB_HOST|DB_DATABASE|DB_USERNAME|DB_PASSWORD'\nfind /home/USERNAME -name wp-config.php | xargs grep -E 'DB_NAME|DB_USER|DB_PASSWORD' 2>/dev/null",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  11,
+                                            "description":  "On CWP: add the email domain to the Postfix DB (PostfixAdmin-style). CWP uses postfix.domain and postfix.mailbox tables.",
+                                            "command":  "mysql postfix -e \"INSERT IGNORE INTO domain (domain,description,aliases,mailboxes,maxquota,quota,transport,backupmx,created,modified,active) VALUES ('DOMAIN','DOMAIN',0,0,0,0,'',0,NOW(),NOW(),1);\"",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  12,
+                                            "description":  "Get all email accounts and clear-text passwords from KloxoNG vpopmail. Use vuserinfo -D DOMAIN to list all accounts.",
+                                            "command":  "~vpopmail/bin/vuserinfo -D DOMAIN 2>/dev/null | grep -E '^name:|^clear passwd:'",
+                                            "expectedOutput":  "name:",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  13,
+                                            "description":  "On CWP: for each email account, generate SHA512-CRYPT hash via Python3 (or doveadm pw), insert into postfix.mailbox and postfix.alias, create Maildir dirs at /var/vmail/DOMAIN/USER/.",
+                                            "command":  "python3 -c \"\nimport crypt\ndef h(pw): return '{SHA512-CRYPT}' + crypt.crypt(pw, crypt.mksalt(crypt.METHOD_SHA512))\naccounts = [('USER','PASS'), ...]\nfor user,pw in accounts:\n  email = user+'@DOMAIN'\n  print(\\\"INSERT IGNORE INTO mailbox (username,password,name,maildir,quota,local_part,domain,uid,gid,created,modified,active) VALUES ('%s','%s','%s','DOMAIN/%s/',0,'%s','DOMAIN',101,12,NOW(),NOW(),1);\\\" % (email,h(pw),user,user,user))\n  print(\\\"INSERT IGNORE INTO alias (address,goto,domain,created,modified,active) VALUES ('%s','%s','DOMAIN',NOW(),NOW(),1);\\\" % (email,email))\n\" | mysql postfix\nfor user in USER1 USER2; do\n  mkdir -p /var/vmail/DOMAIN/$user/{cur,new,tmp,.Trash/{cur,new,tmp},.Sent/{cur,new,tmp},.Drafts/{cur,new,tmp},.Junk/{cur,new,tmp}}\ndone\nchown -R vmail:mail /var/vmail/DOMAIN/\nchmod -R 700 /var/vmail/DOMAIN/",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  14,
+                                            "description":  "From KloxoNG: rsync each user Maildir to CWP. KloxoNG stores mail at /home/lxadmin/mail/domains/DOMAIN/USER/Maildir/. CWP stores at /var/vmail/DOMAIN/USER/. Exclude courier-imap metadata files.",
+                                            "command":  "for USER in USER1 USER2 ...; do\n  sshpass -p 'CWP_ROOT_PW' rsync -az --exclude='courierimapkeywords' --exclude='courierimapsubscribed' --exclude='maildirfolder' --exclude='autorespond' -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password' /home/lxadmin/mail/domains/DOMAIN/$USER/Maildir/ root@CWP_HOST:/var/vmail/DOMAIN/$USER/\ndone",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  15,
+                                            "description":  "On CWP: final fixes — fix vmail ownership on transferred mail, reload Postfix and Dovecot, update APP_URL in .env to new domain.",
+                                            "command":  "chown -R vmail:mail /var/vmail/DOMAIN/\nchmod -R 700 /var/vmail/DOMAIN/\npostfix reload\nsystemctl reload dovecot\nsed -i 's|APP_URL=http://localhost|APP_URL=http://DOMAIN|' /home/USERNAME/.env",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  16,
+                                            "description":  "Verify the migration: check file count, DB tables, mail size, and Apache vhost.",
+                                            "command":  "du -sh /home/USERNAME/ && mysql -e 'SHOW DATABASES;' | grep USERNAME && mysql postfix -e \"SELECT COUNT(*) FROM mailbox WHERE domain='DOMAIN';\" && du -sh /var/vmail/DOMAIN/ && curl -sI http://CWP_IP/ -H 'Host: DOMAIN' | head -3",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-06T04:00:00.000Z"
+                                        }
+                                    ],
+                          "successCount":  1,
+                          "failureCount":  0,
+                          "createdAt":  "2026-06-06T04:00:00.000Z",
+                          "updatedAt":  "2026-06-06T04:00:00.000Z",
+                          "notes":  "KEY LESSONS LEARNED from microrepair.net migration (2026-06-06):\n1. KloxoNG SSH port is 10022 (not 22). Always check with nmap or by asking the user.\n2. KloxoNG stores mail via vpopmail at /home/lxadmin/mail/domains/DOMAIN/USER/Maildir/ — NOT under /home/USERNAME/.\n3. CWP uses PostfixAdmin-style MySQL tables (postfix.domain, postfix.mailbox, postfix.alias) — NOT virtual_domains/virtual_users.\n4. CRITICAL: MariaDB 10.6+ adds '/*M!999999\\- enable the sandbox mode */' as the FIRST line of mysqldump output. MySQL rejects this with 'Unknown command \\-'. Fix: pipe the dump through 'sed 1d' before importing.\n5. KloxoNG does NOT have sshpass by default on AlmaLinux 9 — install with: dnf install -y sshpass. This allows rsync with password from KloxoNG → CWP.\n6. CWP server cannot reach KloxoNG on port 10022 (firewalled). Must run rsync FROM KloxoNG pushing TO CWP (port 22 is reachable).\n7. Generate SHA512-CRYPT password hashes with Python3 crypt module — doveadm pw also works but may not be installed.\n8. The app .env DB_USERNAME may be truncated to 16 chars (old MySQL 5.x limit). Always read .env and wp-config.php to get the EXACT usernames — they may differ from the system username.\n9. Maildir on CWP is at /var/vmail/DOMAIN/USER/ (uid=101=vmail, gid=12=mail). Always fix ownership after rsync.\n10. Exclude courier-imap metadata (courierimapkeywords, courierimapsubscribed, maildirfolder) when rsyncing mail — they are incompatible with Dovecot.",
+                          "author":  "Jose Rodriguez Arroyo",
+                          "version":  1
+                      },
+                      {
+                          "id":  "pb_1779758540839_baugv",
+                          "title":  "Install ISPConfig 3 on Ubuntu 22.04 LTS (Full Perfect Server)",
+                          "description":  "Complete installation of ISPConfig 3 control panel on a fresh Ubuntu 22.04 LTS server. Includes Apache2, PHP 5.6-8.5 multi-version, MariaDB, Postfix, Dovecot, BIND9, PureFTPd, rspamd, ClamAV, Fail2ban, Roundcube webmail, phpMyAdmin, and Let\u0027s Encrypt (acme.sh). CRITICAL: Fix BIND9 forwarders before running installer or DNS check will fail. ISPConfig panel is accessible at https://HOST:8080 after installation. Tested on: server s1.technologixpr.com (192.254.73.46), Proxmox VE, 2GB RAM, 60GB disk.",
+                          "category":  "install",
+                          "keywords":  [
+                                           "ispconfig",
+                                           "ispconfig3",
+                                           "control panel",
+                                           "hosting",
+                                           "web hosting",
+                                           "ubuntu",
+                                           "ubuntu 22.04",
+                                           "jammy",
+                                           "lamp",
+                                           "apache",
+                                           "php",
+                                           "mariadb",
+                                           "mysql",
+                                           "postfix",
+                                           "dovecot",
+                                           "bind9",
+                                           "dns",
+                                           "ftp",
+                                           "pureftpd",
+                                           "clamav",
+                                           "fail2ban",
+                                           "roundcube",
+                                           "webmail",
+                                           "phpmyadmin",
+                                           "perfect server",
+                                           "vps",
+                                           "dedicated",
+                                           "install"
+                                       ],
+                          "targetOS":  "ubuntu",
+                          "targetService":  "ispconfig",
+                          "steps":  [
+                                        {
+                                            "description":  "Verify SSH connectivity and check OS version",
+                                            "command":  "ssh root@\u003cHOST\u003e \u0027echo OK \u0026\u0026 uname -a \u0026\u0026 cat /etc/os-release | head -4\u0027",
+                                            "expectedOutput":  "Ubuntu 22.04",
+                                            "success":  true,
+                                            "stepNumber":  1,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Enable root password SSH login (PasswordAuthentication yes in sshd_config)",
+                                            "command":  "sed -i \u0027s/^#*PasswordAuthentication.*/PasswordAuthentication yes/\u0027 /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "stepNumber":  2,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Update apt package lists",
+                                            "command":  "DEBIAN_FRONTEND=noninteractive apt-get update -y",
+                                            "expectedOutput":  "Reading package lists... Done",
+                                            "success":  true,
+                                            "stepNumber":  3,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Upgrade all installed packages",
+                                            "command":  "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
+                                            "expectedOutput":  "done.",
+                                            "success":  true,
+                                            "stepNumber":  4,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Install screen, wget, curl (needed for installer)",
+                                            "command":  "DEBIAN_FRONTEND=noninteractive apt-get install -y screen wget curl",
+                                            "expectedOutput":  "Setting up screen",
+                                            "success":  true,
+                                            "stepNumber":  5,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Download the ISPConfig auto-installer script",
+                                            "command":  "wget -O /root/ispconfig-installer.sh https://get.ispconfig.org",
+                                            "expectedOutput":  "saved",
+                                            "success":  true,
+                                            "stepNumber":  6,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "CRITICAL: Fix BIND9 forwarders BEFORE running installer to prevent DNS check failure",
+                                            "command":  "cat \u003e /etc/bind/named.conf.options \u003c\u003c \u0027EOF\u0027\noptions {\n    directory \"/var/cache/bind\";\n    recursion yes;\n    forwarders {\n        8.8.8.8;\n        8.8.4.4;\n        1.1.1.1;\n    };\n    forward first;\n    dnssec-validation no;\n    listen-on-v6 { any; };\n    allow-query { any; };\n};\nEOF",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "stepNumber":  7,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Launch ISPConfig installer in screen session with output logged to file",
+                                            "command":  "screen -dmS ispconfig bash -c \"bash /root/ispconfig-installer.sh --use-ftp-ports=40110-40210 --unattended-upgrades --no-quota 2\u003e\u00261 | tee /root/ispconfig-install.log; echo ISPCONFIG_INSTALL_DONE \u003e\u003e /root/ispconfig-install.log\"",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "stepNumber":  8,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Wait for installer to load PHP then send \"yes\" confirmation to screen session",
+                                            "command":  "sleep 60 \u0026\u0026 screen -S ispconfig -X stuff \u0027yes\\n\u0027",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "stepNumber":  9,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Poll log file every 2 minutes until ISPCONFIG_INSTALL_DONE marker appears (30-60 min total)",
+                                            "command":  "tail -f /root/ispconfig-install.log | grep -m1 \u0027ISPCONFIG_INSTALL_DONE\u0027",
+                                            "expectedOutput":  "ISPCONFIG_INSTALL_DONE",
+                                            "success":  true,
+                                            "stepNumber":  10,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Extract ISPConfig admin password and MySQL root password from log",
+                                            "command":  "grep -E \u0027admin password|MySQL root password\u0027 /root/ispconfig-install.log",
+                                            "expectedOutput":  "Your ISPConfig admin password is:",
+                                            "success":  true,
+                                            "stepNumber":  11,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Verify ISPConfig port 8080 is listening (Apache running)",
+                                            "command":  "ss -tlnp | grep \u0027:8080\u0027",
+                                            "expectedOutput":  "apache2",
+                                            "success":  true,
+                                            "stepNumber":  12,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Verify all key services are running",
+                                            "command":  "systemctl is-active apache2 mariadb postfix dovecot bind9 pure-ftpd-mysql",
+                                            "expectedOutput":  "active",
+                                            "success":  true,
+                                            "stepNumber":  13,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        },
+                                        {
+                                            "description":  "Delete installer log files containing passwords for security",
+                                            "command":  "rm -f /root/ispconfig-install*.log \u0026\u0026 rm -rf /root/ispconfig-install-log/",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "stepNumber":  14,
+                                            "timestamp":  "2026-05-26T01:22:20.839Z"
+                                        }
+                                    ],
+                          "successCount":  1,
+                          "failureCount":  0,
+                          "createdAt":  "2026-05-26T01:22:20.839Z",
+                          "updatedAt":  "2026-05-26T01:22:20.839Z",
+                          "notes":  "KEY LESSONS LEARNED:\n1. BIND9 forwarders MUST be configured before installer runs. The installer starts BIND9 mid-way and if forwarders are not set, the DNS check in the PHP installer fails.\n2. Use screen to keep installer alive across SSH disconnects.\n3. The installer asks \"yes\" confirmation â€” send via: screen -S ispconfig -X stuff \"yes\\n\"\n4. First run takes 45-60 min. If it fails and you re-run, subsequent runs are faster (15-20 min) because packages are cached.\n5. ISPConfig panel: https://HOST:8080 (port 8080, not 80)\n6. Credentials are printed in the log: grep -E \"admin password|MySQL root\" /root/ispconfig-install.log\n7. Delete log files after noting credentials (they contain plaintext passwords).\n8. ClamAV may fail to update during install due to DNS timing â€” not critical, it will self-update after BIND9 stabilizes.",
+                          "author":  "Jose Rodriguez Arroyo",
+                          "version":  1
+                      },
+                      {
+                          "id":  "pb_cwp_almalinux8_2026",
+                          "title":  "Install CWP (Control Web Panel) on AlmaLinux 8 / Rocky Linux 8 / CentOS 8",
+                          "description":  "Complete installation of CWP (Control Web Panel) on AlmaLinux 8, Rocky Linux 8, or CentOS 8. CWP is a free web hosting control panel (alternative to cPanel). Installs Apache (compiled from source), PHP multi-version, MariaDB, Postfix, Dovecot, ProFTPD, DNS, Webmail. Admin panel accessible at http://SERVER_IP:2030 (HTTP) or https://SERVER_IP:2031 (HTTPS) after installation and reboot. Tested on: AlmaLinux 8.10, Proxmox VE, 2GB RAM, 60GB disk. Installation takes 30-60 minutes (Apache compiled from source).",
+                          "category":  "install",
+                          "keywords":  [
+                                           "cwp",
+                                           "control web panel",
+                                           "centos web panel",
+                                           "webpanel",
+                                           "hosting panel",
+                                           "web hosting",
+                                           "almalinux",
+                                           "almalinux 8",
+                                           "rocky linux",
+                                           "centos 8",
+                                           "rhel 8",
+                                           "lamp",
+                                           "apache",
+                                           "php",
+                                           "mariadb",
+                                           "mysql",
+                                           "postfix",
+                                           "dovecot",
+                                           "proftpd",
+                                           "dns",
+                                           "control panel",
+                                           "cpanel alternative",
+                                           "vps",
+                                           "dedicated",
+                                           "install",
+                                           "el8"
+                                       ],
+                          "targetOS":  "almalinux",
+                          "targetService":  "cwp",
+                          "steps":  [
+                                        {
+                                            "stepNumber":  1,
+                                            "description":  "Verify SSH connectivity, OS version, RAM and disk â€” minimum 2GB RAM, 20GB free disk, AlmaLinux/Rocky/CentOS 8",
+                                            "command":  "cat /etc/os-release | head -4 \u0026\u0026 echo \u0027---\u0027 \u0026\u0026 free -m | head -2 \u0026\u0026 echo \u0027---\u0027 \u0026\u0026 df -h / | tail -1",
+                                            "expectedOutput":  "AlmaLinux",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  2,
+                                            "description":  "Check for conflicting services â€” CWP requires a FRESH minimal install. Stop any existing httpd/nginx/apache before proceeding.",
+                                            "command":  "systemctl list-units --state=running --type=service | grep -E \u0027httpd|nginx|apache|cpanel|plesk|webmin|cwp\u0027 || echo \u0027No conflicts found\u0027",
+                                            "expectedOutput":  "No conflicts found",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  3,
+                                            "description":  "Download the CWP installer for EL8 (AlmaLinux 8 / Rocky Linux 8) using curl with redirect follow",
+                                            "command":  "cd /usr/local/src \u0026\u0026 curl -LsO http://centos-webpanel.com/cwp-el8-latest \u0026\u0026 ls -lh cwp-el8-latest",
+                                            "expectedOutput":  "50K",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  4,
+                                            "description":  "Launch CWP installer in background with nohup â€” output logged to /var/log/cwp-install.log. Installation takes 30-60 minutes (compiles Apache from source).",
+                                            "command":  "nohup bash /usr/local/src/cwp-el8-latest \u003e /var/log/cwp-install.log 2\u003e\u00261 \u0026 echo \"PID: $!\"",
+                                            "expectedOutput":  "PID:",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  5,
+                                            "description":  "Monitor installation progress â€” poll every 2 minutes. Installation is done when log contains \u0027CWP installation\u0027 or \u0027reboot\u0027 message.",
+                                            "command":  "tail -50 /var/log/cwp-install.log",
+                                            "expectedOutput":  "reboot",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  6,
+                                            "description":  "Wait for installation to complete â€” grep log for completion marker. Re-run this check every 5 minutes until it returns output.",
+                                            "command":  "grep -iE \u0027reboot|installation complete|cwp.*installed|setup complete\u0027 /var/log/cwp-install.log",
+                                            "expectedOutput":  "reboot",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  7,
+                                            "description":  "IMPORTANT: Reboot the server after CWP installation completes â€” required for CWP services to start properly.",
+                                            "command":  "reboot",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  8,
+                                            "description":  "After reboot (wait 2-3 minutes), verify CWP services are running â€” cwpsrv is the main CWP service.",
+                                            "command":  "systemctl is-active cwpsrv \u0026\u0026 systemctl is-active httpd \u0026\u0026 systemctl is-active mariadb \u0026\u0026 echo \u0027All CWP services running\u0027",
+                                            "expectedOutput":  "All CWP services running",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  9,
+                                            "description":  "Open required firewall ports for CWP: 2030 (admin HTTP), 2031 (admin HTTPS), 80, 443, 25, 465, 587, 110, 143, 993, 995, 21, 20, 8080-8090",
+                                            "command":  "firewall-cmd --permanent --add-port=2030/tcp --add-port=2031/tcp --add-port=80/tcp --add-port=443/tcp --add-port=25/tcp --add-port=465/tcp --add-port=587/tcp --add-port=110/tcp --add-port=143/tcp --add-port=993/tcp --add-port=995/tcp --add-port=21/tcp \u0026\u0026 firewall-cmd --reload \u0026\u0026 echo \u0027Firewall rules applied\u0027",
+                                            "expectedOutput":  "success",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  10,
+                                            "description":  "Retrieve the MySQL root password set by CWP installer",
+                                            "command":  "cat /etc/cwp/.mysql_password 2\u003e/dev/null || grep -i \u0027mysql\\|password\\|root\u0027 /var/log/cwp-install.log | tail -5",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  11,
+                                            "description":  "Verify CWP admin panel port 2030 is listening",
+                                            "command":  "ss -tlnp | grep \u0027:2030\u0027",
+                                            "expectedOutput":  "2030",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  12,
+                                            "description":  "Verify all key CWP services are running after reboot",
+                                            "command":  "for svc in cwpsrv httpd mariadb postfix dovecot proftpd; do echo -n \"$svc: \"; systemctl is-active $svc 2\u003e/dev/null || echo inactive; done",
+                                            "expectedOutput":  "active",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  13,
+                                            "description":  "Access CWP Admin Panel at http://SERVER_IP:2030 â€” login with root and the server root password. HTTPS panel at https://SERVER_IP:2031",
+                                            "command":  "echo \u0027CWP Admin Panel: http://$(hostname -I | awk \"{print \\$1}\"):2030\u0027",
+                                            "expectedOutput":  "http://",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T00:53:00.000Z"
+                                        }
+                                    ],
+                          "successCount":  1,
+                          "failureCount":  0,
+                          "createdAt":  "2026-06-03T00:53:00.000Z",
+                          "updatedAt":  "2026-06-03T00:53:00.000Z",
+                          "notes":  "KEY LESSONS LEARNED:\n1. Server MUST be a fresh minimal AlmaLinux 8/Rocky 8/CentOS 8 install â€” CWP has no uninstaller.\n2. Minimum 2GB RAM required; 4GB recommended.\n3. Use curl -L (follow redirects) to download installer â€” the centos-webpanel.com URL returns a 301 redirect to dl1.centos-webpanel.com. wget without -L will fail.\n4. wget is often NOT installed on minimal AlmaLinux â€” use curl instead.\n5. Run installer with nohup in background; it takes 30-60 minutes and compiles Apache from source.\n6. A REBOOT is REQUIRED after installation completes â€” CWP services will not start without it.\n7. Admin panel: http://SERVER_IP:2030 (HTTP) or https://SERVER_IP:2031 (HTTPS). Login: root / server-root-password.\n8. CWP user panel (for hosting users): http://SERVER_IP:2082.\n9. MySQL password is saved in /etc/cwp/.mysql_password after installation.\n10. Tested on: AlmaLinux 8.10, 2GB RAM, 60GB disk, s1.technologixpr.com (192.254.73.46).\n11. For EL7 (CentOS 7): use installer URL http://centos-webpanel.com/cwp-el7-latest instead.",
+                          "author":  "Jose Rodriguez Arroyo",
+                          "version":  1
+                      },
+                      {
+                          "id":  "pb_1780127378506_391le",
+                          "title":  "Install KloxoNG on AlmaLinux 8",
+                          "description":  "Complete installation of KloxoNG (open-source web hosting control panel, fork of Kloxo) on AlmaLinux 8. Includes Apache, PHP, MySQL/MariaDB, Postfix, Dovecot, ProFTPD, DNS. Admin panel accessible at http://SERVER_IP:7776 (HTTP) or https://SERVER_IP:7777 (HTTPS). Default login: admin / admin123 â€” MUST be changed immediately. Tested on AlmaLinux 8.",
+                          "category":  "install",
+                          "keywords":  [
+                                           "kloxo",
+                                           "kloxong",
+                                           "kloxo-ng",
+                                           "hosting panel",
+                                           "web hosting",
+                                           "control panel",
+                                           "almalinux",
+                                           "almalinux 8",
+                                           "centos",
+                                           "rhel",
+                                           "lamp",
+                                           "apache",
+                                           "php",
+                                           "mysql",
+                                           "mariadb",
+                                           "postfix",
+                                           "dovecot",
+                                           "proftpd",
+                                           "ftp",
+                                           "dns",
+                                           "cpanel alternative",
+                                           "vps",
+                                           "dedicated",
+                                           "install",
+                                           "el8"
+                                       ],
+                          "targetOS":  "almalinux",
+                          "targetService":  "kloxong",
+                          "steps":  [
+                                        {
+                                            "stepNumber":  1,
+                                            "description":  "Verify SSH connectivity, OS version, RAM and disk â€” AlmaLinux 8, minimum 1GB RAM, 20GB free disk",
+                                            "command":  "cat /etc/os-release | head -4 \u0026\u0026 free -m | head -2 \u0026\u0026 df -h / | tail -1",
+                                            "expectedOutput":  "AlmaLinux",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:10:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  2,
+                                            "description":  "Set a valid Fully Qualified Domain Name (FQDN) as the server hostname â€” required by KloxoNG",
+                                            "command":  "hostnamectl set-hostname server.yourdomain.com \u0026\u0026 hostname -f",
+                                            "expectedOutput":  "server.yourdomain.com",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:10:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  3,
+                                            "description":  "Update all system packages to latest versions",
+                                            "command":  "dnf update -y",
+                                            "expectedOutput":  "Complete!",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:10:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  4,
+                                            "description":  "Install prerequisites â€” curl, wget, and other tools needed by the installer",
+                                            "command":  "dnf install -y curl wget tar gzip",
+                                            "expectedOutput":  "Complete!",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:10:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  5,
+                                            "description":  "Download KloxoNG installer script for AlmaLinux 8 / EL8",
+                                            "command":  "curl -O https://kloxo.org/kloxo8/kloxo.sh",
+                                            "expectedOutput":  "100",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:16:48.472Z"
+                                        },
+                                        {
+                                            "stepNumber":  6,
+                                            "description":  "Make the installer script executable",
+                                            "command":  "chmod +x kloxo.sh",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  7,
+                                            "description":  "Launch KloxoNG installer in background with nohup â€” logs to /var/log/kloxo-install.log. Installation takes 20-40 minutes.",
+                                            "command":  "nohup bash kloxo.sh \u003e /var/log/kloxo-install.log 2\u003e\u00261 \u0026 echo \"PID: $!\"",
+                                            "expectedOutput":  "PID:",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  8,
+                                            "description":  "Monitor installation progress â€” tail the log file. Check every few minutes.",
+                                            "command":  "tail -30 /var/log/kloxo-install.log",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  9,
+                                            "description":  "Wait for installation to complete â€” poll for completion marker in log",
+                                            "command":  "grep -iE \u0027installation complete|kloxo.*installed|setup complete|reboot|finished\u0027 /var/log/kloxo-install.log",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  10,
+                                            "description":  "Open required firewall ports â€” 7776 (admin HTTP), 7777 (admin HTTPS), 80, 443, 25, 110, 143, 465, 587, 993, 995, 21",
+                                            "command":  "firewall-cmd --permanent --add-port=7776/tcp --add-port=7777/tcp --add-port=80/tcp --add-port=443/tcp --add-port=25/tcp --add-port=110/tcp --add-port=143/tcp --add-port=465/tcp --add-port=587/tcp --add-port=993/tcp --add-port=995/tcp --add-port=21/tcp \u0026\u0026 firewall-cmd --reload",
+                                            "expectedOutput":  "success",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  11,
+                                            "description":  "Reboot server if required by installer (check log for reboot message)",
+                                            "command":  "reboot",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  12,
+                                            "description":  "After reboot, verify KloxoNG main service (kloxo) is running",
+                                            "command":  "systemctl is-active kloxo \u0026\u0026 systemctl is-active httpd \u0026\u0026 systemctl is-active mysqld \u0026\u0026 echo \u0027KloxoNG services running\u0027",
+                                            "expectedOutput":  "KloxoNG services running",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  13,
+                                            "description":  "Verify KloxoNG admin panel port 7776 is listening",
+                                            "command":  "ss -tlnp | grep \u0027:7776\u0027",
+                                            "expectedOutput":  "7776",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  14,
+                                            "description":  "Access KloxoNG Admin Panel at http://SERVER_IP:7776 â€” default login: admin / admin123. HTTPS at https://SERVER_IP:7777",
+                                            "command":  "echo \u0027KloxoNG Admin: http://SERVER_IP:7776 â€” login: admin / admin123 (CHANGE IMMEDIATELY)\u0027",
+                                            "expectedOutput":  "KloxoNG Admin",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        },
+                                        {
+                                            "stepNumber":  15,
+                                            "description":  "Change the default admin password immediately after first login via Admin \u003e Users \u003e admin \u003e Change Password",
+                                            "command":  "echo \u0027Login at http://SERVER_IP:7776 and change password: Admin \u003e Users \u003e admin \u003e Change Password\u0027",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-05-30T07:17:30.106Z"
+                                        }
+                                    ],
+                          "successCount":  1,
+                          "failureCount":  0,
+                          "createdAt":  "2026-05-30T07:17:30.106Z",
+                          "updatedAt":  "2026-06-03T01:15:00.000Z",
+                          "notes":  "KEY LESSONS LEARNED:\n1. KloxoNG installer URL for EL8 (AlmaLinux 8 / Rocky 8): https://kloxo.org/kloxo8/kloxo.sh\n2. Server must have a valid FQDN set as hostname before installation.\n3. Run with nohup in background; log to /var/log/kloxo-install.log.\n4. Admin panel ports: 7776 (HTTP) and 7777 (HTTPS).\n5. Default credentials: admin / admin123 â€” change immediately after first login.\n6. User hosting panel: http://SERVER_IP:7778.\n7. Firewall must allow ports 7776, 7777 for admin access.\n8. NOTE: Some steps in this playbook were reconstructed on 2026-06-03 after the original was accidentally deleted. The core installer steps (download, chmod, run) were preserved from command history (IDs: cmd_1780125408472_zv8j, cmd_1780125450106_jnau).",
+                          "author":  "Jose Rodriguez Arroyo",
+                          "version":  1
+                      },
+                      {
+                          "id":  "pb_cpanel_almalinux8_2026",
+                          "title":  "Install cPanel/WHM on AlmaLinux 8",
+                          "description":  "Complete installation of cPanel \u0026 WHM (Web Host Manager) on AlmaLinux 8. cPanel is the industry-standard commercial web hosting control panel. WHM admin panel at https://SERVER_IP:2087, cPanel user panel at https://SERVER_IP:2083. Requires a valid cPanel license (15-day free trial available). Installation takes 30-60 minutes. Tested on: AlmaLinux 8.10, 2GB RAM, 60GB disk, 104.152.185.78.",
+                          "category":  "install",
+                          "keywords":  [
+                                           "cpanel",
+                                           "whm",
+                                           "cpanel whm",
+                                           "web host manager",
+                                           "hosting panel",
+                                           "web hosting",
+                                           "control panel",
+                                           "almalinux",
+                                           "almalinux 8",
+                                           "centos",
+                                           "rhel",
+                                           "el8",
+                                           "apache",
+                                           "php",
+                                           "mysql",
+                                           "mariadb",
+                                           "postfix",
+                                           "dovecot",
+                                           "exim",
+                                           "proftpd",
+                                           "ftp",
+                                           "dns",
+                                           "bind",
+                                           "cpanel alternative",
+                                           "vps",
+                                           "dedicated",
+                                           "install",
+                                           "license"
+                                       ],
+                          "targetOS":  "almalinux",
+                          "targetService":  "cpanel",
+                          "steps":  [
+                                        {
+                                            "stepNumber":  1,
+                                            "description":  "Verify SSH connectivity, OS version, RAM and disk — AlmaLinux 8, minimum 2GB RAM, 20GB free disk, x86_64",
+                                            "command":  "cat /etc/os-release | head -5 \u0026\u0026 free -m | head -2 \u0026\u0026 df -h / | tail -1 \u0026\u0026 uname -m",
+                                            "expectedOutput":  "AlmaLinux",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  2,
+                                            "description":  "Ensure server has a valid FQDN hostname — cPanel requires a properly set fully-qualified domain name",
+                                            "command":  "hostname -f",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  3,
+                                            "description":  "PROXMOX VMs ONLY: Create /etc/fstab if missing — cPanel health check requires this file. Get root device from \u0027df -h /\u0027 and filesystem type from \u0027findmnt / --output SOURCE,FSTYPE\u0027.",
+                                            "command":  "[ -f /etc/fstab ] || ( ROOT_DEV=$(findmnt / -o SOURCE -n) \u0026\u0026 ROOT_FS=$(findmnt / -o FSTYPE -n) \u0026\u0026 echo \"$ROOT_DEV  /  $ROOT_FS  defaults  0  1\" \u003e /etc/fstab \u0026\u0026 echo \u0027fstab created\u0027 )",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:53:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  4,
+                                            "description":  "Check for conflicting services — cPanel requires a fresh minimal install with no existing Apache, Nginx, or other panels",
+                                            "command":  "systemctl list-units --state=running --type=service | grep -E \u0027httpd|nginx|apache|cwp|plesk|webmin\u0027 || echo \u0027No conflicts\u0027",
+                                            "expectedOutput":  "No conflicts",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  5,
+                                            "description":  "Download the cPanel \u0026 WHM installer script (~73KB) from the official Cpanel download server",
+                                            "command":  "cd /home \u0026\u0026 curl -o latest -L https://securedownloads.cpanel.net/latest \u0026\u0026 ls -lh latest",
+                                            "expectedOutput":  "73K",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  6,
+                                            "description":  "Launch the cPanel installer in background with nohup — logs to /var/log/cpanel-install.log. Takes 30-60 minutes.",
+                                            "command":  "nohup sh /home/latest \u003e /var/log/cpanel-install.log 2\u003e\u00261 \u0026 echo \"PID: $!\"",
+                                            "expectedOutput":  "PID:",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  7,
+                                            "description":  "Monitor installation progress — tail the log every few minutes. Look for phase indicators like \u0027Installing packages\u0027, \u0027Configuring\u0027, \u0027Done\u0027.",
+                                            "command":  "tail -30 /var/log/cpanel-install.log",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  8,
+                                            "description":  "Poll for installation completion — returns output when cPanel install is done",
+                                            "command":  "grep -iE \u0027installation complete|cpanel.*installed|whm.*complete|Thank you for installing|all services are up\u0027 /var/log/cpanel-install.log",
+                                            "expectedOutput":  "Thank you for installing",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  9,
+                                            "description":  "Open required firewall ports — 2087/2086 (WHM), 2083/2082 (cPanel), 2095/2096 (Webmail), 80, 443, 21, 25, 465, 587, 110, 143, 993, 995",
+                                            "command":  "firewall-cmd --permanent --add-port=2087/tcp --add-port=2086/tcp --add-port=2083/tcp --add-port=2082/tcp --add-port=2095/tcp --add-port=2096/tcp --add-port=80/tcp --add-port=443/tcp --add-port=21/tcp --add-port=25/tcp --add-port=465/tcp --add-port=587/tcp --add-port=110/tcp --add-port=143/tcp --add-port=993/tcp --add-port=995/tcp \u0026\u0026 firewall-cmd --reload",
+                                            "expectedOutput":  "success",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  10,
+                                            "description":  "Verify all key cPanel/WHM services are running after installation",
+                                            "command":  "for svc in cpanel chkservd httpd exim dovecot named; do echo -n \"$svc: \"; systemctl is-active $svc 2\u003e/dev/null || echo inactive; done",
+                                            "expectedOutput":  "active",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  11,
+                                            "description":  "Verify WHM port 2087 and cPanel port 2083 are listening",
+                                            "command":  "ss -tlnp | grep -E \u0027:2087|:2083|:2086|:2082\u0027",
+                                            "expectedOutput":  "2087",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  12,
+                                            "description":  "Access WHM (Web Host Manager) admin panel at https://SERVER_IP:2087 — login with root and the server root password",
+                                            "command":  "echo \u0027WHM Admin: https://SERVER_IP:2087 — login: root / server-root-password\u0027",
+                                            "expectedOutput":  "WHM Admin",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        },
+                                        {
+                                            "stepNumber":  13,
+                                            "description":  "Complete the WHM initial setup wizard — set nameservers, contact email, and configure the server. cPanel user panel is at https://SERVER_IP:2083",
+                                            "command":  "echo \u0027Complete WHM setup wizard at https://SERVER_IP:2087\u0027",
+                                            "expectedOutput":  "",
+                                            "success":  true,
+                                            "timestamp":  "2026-06-03T18:35:00.000Z"
+                                        }
+                                    ],
+                          "successCount":  1,
+                          "failureCount":  0,
+                          "createdAt":  "2026-06-03T18:35:00.000Z",
+                          "updatedAt":  "2026-06-03T16:32:01.944Z",
+                          "notes":  "KEY LESSONS LEARNED:\n1. cPanel requires AlmaLinux 8 (or Rocky 8, CloudLinux 8, Ubuntu 20.04/22.04) — check supported OS list at docs.cpanel.net.\n2. Installer URL: https://securedownloads.cpanel.net/latest — always use curl -L to follow redirects.\n3. Run installer with nohup in background, log to /var/log/cpanel-install.log.\n4. Installation takes 30-60 minutes — installs Exim (MTA), Apache, PHP, MySQL/MariaDB, Dovecot, BIND, ProFTPD.\n5. No reboot needed after cPanel install — services start automatically.\n6. WHM (admin): https://SERVER_IP:2087 — login: root / root-password.\n7. cPanel (user): https://SERVER_IP:2083.\n8. Webmail: https://SERVER_IP:2095.\n9. cPanel requires a paid license after 15-day trial — purchase at store.cpanel.net.\n10. Firewall ports: 2087, 2086 (WHM), 2083, 2082 (cPanel), 2095, 2096 (Webmail), plus standard mail/web ports.\n11. Tested on: AlmaLinux 8.10, 2GB RAM, 60GB disk, 104.152.185.78.\n12. PROXMOX VM FIX: If installer fails with \u0027missing /etc/fstab\u0027, create it: ROOT_DEV=$(findmnt / -o SOURCE -n) \u0026\u0026 echo \"$ROOT_DEV / ext4 defaults 0 1\" \u003e /etc/fstab — then re-run the installer. This affects Proxmox-based VMs that boot without a traditional fstab.",
+                          "author":  "Jose Rodriguez Arroyo",
+                          "version":  1
+                      }
+                  ]
 }
