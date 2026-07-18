@@ -210,7 +210,10 @@ export class AutonomousMonitor {
   private async checkTickets(state: AgentState, criticalMessages: string[]): Promise<void> {
     try {
       const result = await this.executor.execute('hcp_list_tickets', { status: 'open' });
-      if (!result?.success) return;
+      if (!result?.success) {
+        addObservation(state, { category: 'tickets', severity: 'warning', summary: `Could not check tickets: ${result?.error || 'unknown error'}` });
+        return;
+      }
 
       const tickets = result.tickets || [];
       if (tickets.length > 0) {
@@ -229,7 +232,10 @@ export class AutonomousMonitor {
   private async checkSecurity(state: AgentState, criticalMessages: string[]): Promise<void> {
     try {
       const result = await this.executor.execute('hcp_get_intrusion_activity', {});
-      if (!result?.success) return;
+      if (!result?.success) {
+        addObservation(state, { category: 'security', severity: 'warning', summary: `Could not check intrusion activity: ${result?.error || 'unknown error'}` });
+        return;
+      }
 
       const activity = result.activity;
       if (activity && activity.totalAttempts > 0) {
