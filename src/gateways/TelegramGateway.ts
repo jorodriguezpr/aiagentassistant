@@ -3808,8 +3808,13 @@ Be helpful and efficient. Use appropriate tools to complete requests. Provide cl
       logger.warn({ error }, 'Failed to register commands with Telegram');
     }
     
-    // Launch bot without awaiting - it runs continuously in background
-    this.bot.launch();
+    // Launch bot without awaiting - it runs continuously in background.
+    // Must catch here: an invalid/placeholder token rejects this promise, and an
+    // uncaught rejection crashes the whole process (Node treats it as fatal by
+    // default) instead of just leaving Telegram unavailable.
+    this.bot.launch().catch((error) => {
+      logger.error({ error }, 'Telegram bot failed to launch (invalid or missing token?) — Telegram gateway will be unavailable');
+    });
     logger.info('Telegram bot launched and polling for messages');
 
     // Handle graceful shutdown

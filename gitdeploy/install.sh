@@ -336,7 +336,9 @@ configure() {
   TELEGRAM_TOKEN=$(ask "Telegram Bot Token (or Enter to skip)")
   if [[ -z "$TELEGRAM_TOKEN" ]]; then
     warn "Telegram skipped — set TELEGRAM_BOT_TOKEN in the Admin Portal → Settings before using the bot."
-    TELEGRAM_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
+    # Leave empty, not a placeholder string: the app only attempts to launch the
+    # Telegram gateway when TELEGRAM_BOT_TOKEN is truthy, so a placeholder here
+    # would make it try to launch with a bogus token instead of skipping cleanly.
   else
     ok "Telegram token saved"
   fi
@@ -598,7 +600,7 @@ summary() {
 
   # Remind about skipped items
   local env_file="$APP_DIR/.env"
-  if grep -q "^TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN" "$env_file" 2>/dev/null; then
+  if grep -q "^TELEGRAM_BOT_TOKEN=$" "$env_file" 2>/dev/null; then
     echo -e "  ${YELLOW}⚠  Telegram not configured — go to Settings → TELEGRAM_BOT_TOKEN${NC}"
   fi
   if grep -q "^AI_API_KEY=YOUR_API_KEY" "$env_file" 2>/dev/null; then
