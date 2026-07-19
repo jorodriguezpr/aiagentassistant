@@ -132,4 +132,21 @@ export const HCP_TOOLS: HcpTool[] = [
       required: ['username'],
     },
   },
+
+  // ─── Notification — not delegation-gated. Sending a heads-up to the admin
+  // is observation, not action, matching the Notification-vs-Action split.
+
+  {
+    name: 'hcp_notify_admin',
+    description: 'Push a bell notification to the SysAdminHCP admin panel to flag something noteworthy. Use for anything the admin should know about but that doesn\'t require immediate delegated action.',
+    parameters: {
+      type: 'object',
+      properties: {
+        severity: { type: 'string', description: '"info", "warning", or "critical"' },
+        title: { type: 'string', description: 'Short notification title' },
+        message: { type: 'string', description: 'Notification body' },
+      },
+      required: ['severity', 'title', 'message'],
+    },
+  },
 ];

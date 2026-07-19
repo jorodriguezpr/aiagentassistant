@@ -133,6 +133,13 @@ export class AutonomousMonitor {
   }
 
   private async notifyAdmin(message: string): Promise<void> {
+    // Panel bell notification — always attempted, independent of Telegram config.
+    try {
+      await this.executor.execute('hcp_notify_admin', { severity: 'critical', title: 'Autonomous Monitor Alert', message });
+    } catch (error: any) {
+      logger.error({ error: error.message }, 'AutonomousMonitor: failed to push panel notification');
+    }
+
     if (!this.telegram || !this.adminChatId) {
       logger.warn({ message }, 'AutonomousMonitor: critical observation, but no Telegram admin chat configured to notify');
       return;

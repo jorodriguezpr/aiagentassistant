@@ -98,7 +98,8 @@ export const TOOL_CATEGORIES: Record<string, ToolCategory> = {
   hcp: {
     keywords: ['sysadminhcp', 'panel', 'control panel', 'ticket', 'tickets', 'support ticket', 'client', 'clients', 'suspend', 'unsuspend', 'intrusion', 'blocked ip', 'attacker', 'hosting panel', 'admin panel', 'delegate', 'delegation', 'autonomous'],
     toolNames: ['hcp_get_system_health', 'hcp_list_tickets', 'hcp_get_ticket', 'hcp_list_clients', 'hcp_get_intrusion_activity',
-                'hcp_reply_ticket', 'hcp_update_ticket_status', 'hcp_restart_service', 'hcp_suspend_client', 'hcp_unsuspend_client'],
+                'hcp_reply_ticket', 'hcp_update_ticket_status', 'hcp_restart_service', 'hcp_suspend_client', 'hcp_unsuspend_client',
+                'hcp_notify_admin'],
   },
   web: {
     keywords: ['search', 'web', 'google', 'bing', 'url', 'website', 'fetch', 'scrape', 'internet', 'online'],

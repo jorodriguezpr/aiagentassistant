@@ -2791,6 +2791,9 @@ export class AIToolExecutor {
         case 'hcp_unsuspend_client':
           return await this.hcpUnsuspendClient(args.username);
 
+        case 'hcp_notify_admin':
+          return await this.hcpNotifyAdmin(args.severity, args.title, args.message);
+
         case 'get_credential':
           return await this.getCredential(args.key);
 
@@ -3587,6 +3590,17 @@ export class AIToolExecutor {
     try {
       const result = await getHcpApiClient().unsuspendClient(username);
       appendActionLog(gate.state, { action: 'unsuspend_client', target: username, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ─── SysAdminHCP bridge (notification — not delegation-gated) ────────────
+
+  private async hcpNotifyAdmin(severity: string, title: string, message: string): Promise<any> {
+    try {
+      const result = await getHcpApiClient().notify(severity as any, title, message);
       return { success: true, ...result };
     } catch (error: any) {
       return { success: false, error: error.message };
