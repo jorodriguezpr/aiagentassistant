@@ -125,10 +125,23 @@ preflight() {
     warn "An existing installation is running."
     if ask_yn "Do you want to reinstall / update it?" "n"; then
       info "Stopping existing services…"
-      systemctl stop aiagentassistant aiagentassistant-portal 2>/dev/null || true
+      systemctl stop aiagentassistant 2>/dev/null || true
     else
       die "Aborted by user."
     fi
+  fi
+
+  # Decommission the standalone admin portal from older installs — this is
+  # the SysAdminHCP-integrated flavor, which is managed entirely from the
+  # SysAdminHCP control panel's own AI Agent menu and never runs the portal.
+  if systemctl list-unit-files 2>/dev/null | grep -q '^aiagentassistant-portal\.service'; then
+    warn "Removing standalone admin portal from a previous install (not used by the SysAdminHCP integration)…"
+    systemctl stop aiagentassistant-portal 2>/dev/null || true
+    systemctl disable aiagentassistant-portal 2>/dev/null || true
+    rm -f /etc/systemd/system/aiagentassistant-portal.service
+    systemctl daemon-reload 2>/dev/null || true
+    rm -rf "$PORTAL_DIR"
+    ok "Standalone admin portal removed"
   fi
 }
 
@@ -187,7 +200,6 @@ setup_dirs() {
     "$APP_DIR/scripts" \
     "$APP_DIR/data" \
     "$APP_DIR/src" \
-    "$PORTAL_DIR" \
     "$INSTALL_HOME/.ssh" \
     "$INSTALL_HOME/.config"
 
@@ -251,35 +263,14 @@ download_build() {
     die "Build failed in $APP_DIR — see TypeScript errors above."
   }
   ok "Main application built"
-
-  # ── Portal ────────────────────────────────────────────────────────────────
-  cp -r "$REPO/portal/src"          "$PORTAL_DIR/"
-  cp -r "$REPO/portal/public"       "$PORTAL_DIR/"
-  cp    "$REPO/portal/package.json" "$PORTAL_DIR/"
-  cp    "$REPO/portal/package-lock.json" "$PORTAL_DIR/" 2>/dev/null || true
-  cp    "$REPO/portal/tsconfig.json" "$PORTAL_DIR/"
-  cp    "$REPO/portal/setup.js"     "$PORTAL_DIR/"
-
-  info "Running npm install for portal…"
-  cd "$PORTAL_DIR"
-  npm install --no-audit --no-fund >"$npm_log" 2>&1 || {
-    err "npm install (portal) failed. Details:"
-    tail -40 "$npm_log" >&2
-    rm -f "$npm_log"
-    die "npm install failed in $PORTAL_DIR"
-  }
-  ok "Portal packages installed"
-
-  info "Compiling TypeScript (portal)…"
-  npm run build >"$npm_log" 2>&1 || {
-    err "TypeScript build (portal) failed. Details:"
-    tail -40 "$npm_log" >&2
-    rm -f "$npm_log"
-    die "Build failed in $PORTAL_DIR — see TypeScript errors above."
-  }
   rm -f "$npm_log"
 
-  ok "Admin portal built"
+  # No separate admin portal is built or installed here — this installer ships
+  # the SysAdminHCP-integrated flavor of AI Agent Assistant. All management
+  # (chat, settings, credentials, scheduled tasks, autonomous delegation) is
+  # done from the SysAdminHCP control panel's own "AI Agent" menu, which talks
+  # only to the core agent API on port 3000. The standalone portal/ web app in
+  # this repo is not part of that integration and must not run alongside it.
 
   # ── Knowledge base (playbooks) ───────────────────────────────────────────
   mkdir -p "$APP_DIR/data"
@@ -307,12 +298,10 @@ download_build() {
   # ── Copy system config files ──────────────────────────────────────────────
   cp "$REPO/gitdeploy/config/aiagent-sudoers"                       /tmp/aiagent-sudoers-install
   cp "$REPO/gitdeploy/systemd/aiagentassistant.service"             /tmp/aiagentassistant.service
-  cp "$REPO/gitdeploy/systemd/aiagentassistant-portal.service"      /tmp/aiagentassistant-portal.service
 
   # ── Permissions ───────────────────────────────────────────────────────────
   chown -R "$INSTALL_USER:$INSTALL_USER" "$APP_DIR"
-  chown -R root:root "$PORTAL_DIR"
-  chmod 755 "$APP_DIR" "$PORTAL_DIR"
+  chmod 755 "$APP_DIR"
 
   rm -rf "$TMP_DIR"
   ok "Temporary build files cleaned up"
@@ -501,51 +490,12 @@ install_system_config() {
 
   # Systemd services
   install -m 644 /tmp/aiagentassistant.service        /etc/systemd/system/
-  install -m 644 /tmp/aiagentassistant-portal.service /etc/systemd/system/
   systemctl daemon-reload
-  systemctl enable aiagentassistant aiagentassistant-portal
+  systemctl enable aiagentassistant
   ok "Systemd services installed and enabled"
 
   # Cleanup temp service files
-  rm -f /tmp/aiagent-sudoers-install /tmp/aiagentassistant.service /tmp/aiagentassistant-portal.service
-}
-
-# ─── Phase 6: Portal Admin Setup ─────────────────────────────────────────────
-
-setup_portal() {
-  step 6 "Configuring admin portal"
-
-  # JWT secret
-  local jwt_secret
-  jwt_secret=$(openssl rand -base64 48)
-  echo "$jwt_secret" > "$PORTAL_DIR/.jwt_secret"
-  chmod 600 "$PORTAL_DIR/.jwt_secret"
-  ok "JWT secret generated"
-
-  # TLS certificate (self-signed — valid 10 years)
-  local cert_dir="$PORTAL_DIR/certs"
-  mkdir -p "$cert_dir"
-  local server_ip
-  server_ip=$(server_ip)
-  openssl req -x509 -newkey rsa:2048 -nodes \
-    -keyout "$cert_dir/key.pem" \
-    -out    "$cert_dir/cert.pem" \
-    -days   3650 \
-    -subj   "/CN=${server_ip}/O=AI Agent Assistant/OU=Admin Portal" \
-    -addext "subjectAltName=IP:${server_ip},IP:127.0.0.1" \
-    >/dev/null 2>&1
-  chmod 600 "$cert_dir/key.pem" "$cert_dir/cert.pem"
-  ok "TLS certificate generated (self-signed, valid 10 years)"
-  info "Browser will show a security warning — click 'Advanced' → 'Accept the risk' to proceed"
-
-  # Initial admin password
-  ADMIN_PASS=$(openssl rand -base64 12 | tr -d '+/=\n' | head -c 16)
-
-  PORTAL_DATA_DIR="$PORTAL_DIR" node "$PORTAL_DIR/setup.js" \
-    --username admin \
-    --password "$ADMIN_PASS" 2>&1 | sed 's/^/  /'
-
-  ok "Admin user created (username: admin)"
+  rm -f /tmp/aiagent-sudoers-install /tmp/aiagentassistant.service
 }
 
 # ─── Phase 7: Start & Verify ─────────────────────────────────────────────────
@@ -553,19 +503,10 @@ setup_portal() {
 start_services() {
   step 7 "Starting services"
 
-  systemctl start aiagentassistant-portal
-  sleep 2
   systemctl start aiagentassistant
   sleep 4
 
-  local portal_ok=false agent_ok=false
-
-  if systemctl is-active --quiet aiagentassistant-portal; then
-    ok "Admin Portal   : ${GREEN}running${NC} on port 8085"
-    portal_ok=true
-  else
-    warn "Admin Portal   : not running — check: journalctl -u aiagentassistant-portal -n 30"
-  fi
+  local agent_ok=false
 
   if systemctl is-active --quiet aiagentassistant; then
     ok "AI Agent       : ${GREEN}running${NC} on port 3000"
@@ -574,42 +515,37 @@ start_services() {
     warn "AI Agent       : not running — check: journalctl -u aiagentassistant -n 30"
   fi
 
-  $portal_ok || $agent_ok || true
+  $agent_ok || true
 }
 
 # ─── Phase 8: Summary ────────────────────────────────────────────────────────
 
 summary() {
-  local ip
-  ip=$(server_ip)
-
   echo ""
   echo -e "${BOLD}${GREEN}╔══════════════════════════════════════════════════════════╗${NC}"
   echo -e "${BOLD}${GREEN}║       ✅  Installation Complete!                          ║${NC}"
   echo -e "${BOLD}${GREEN}╚══════════════════════════════════════════════════════════╝${NC}"
   echo ""
-  echo -e "  ${BOLD}Admin Portal${NC}"
-  echo -e "  ┌─────────────────────────────────────────────────────┐"
-  echo -e "  │  URL:       ${CYAN}https://${ip}:8085${NC}"
-  echo -e "  │  Username:  ${BOLD}admin${NC}"
-  echo -e "  │  Password:  ${BOLD}${ADMIN_PASS}${NC}"
-  echo -e "  └─────────────────────────────────────────────────────┘"
+  echo -e "  ${BOLD}This is the SysAdminHCP-integrated flavor of AI Agent Assistant.${NC}"
+  echo -e "  There is no separate admin portal — everything is managed from the"
+  echo -e "  SysAdminHCP control panel's ${BOLD}AI Agent${NC} menu (chat, settings,"
+  echo -e "  credentials, scheduled tasks, and Autonomous Mode delegation)."
   echo ""
   echo -e "  ${BOLD}Next Steps:${NC}"
-  echo -e "  1. Open the Admin Portal in your browser"
+  echo -e "  1. Open the SysAdminHCP control panel → ${BOLD}AI Agent${NC}"
 
   # Remind about skipped items
   local env_file="$APP_DIR/.env"
   if grep -q "^TELEGRAM_BOT_TOKEN=$" "$env_file" 2>/dev/null; then
-    echo -e "  ${YELLOW}⚠  Telegram not configured — go to Settings → TELEGRAM_BOT_TOKEN${NC}"
+    echo -e "  ${YELLOW}⚠  Telegram not configured — go to AI Agent → AI Settings → TELEGRAM_BOT_TOKEN${NC}"
   fi
   if grep -q "^AI_API_KEY=YOUR_API_KEY" "$env_file" 2>/dev/null; then
-    echo -e "  ${YELLOW}⚠  AI provider not configured — go to Settings → AI_PROVIDER and API key${NC}"
+    echo -e "  ${YELLOW}⚠  AI provider not configured — go to AI Agent → AI Settings → AI_PROVIDER and API key${NC}"
   fi
 
-  echo -e "  2. Login and go to ${BOLD}Settings${NC} to set any skipped values"
-  echo -e "  3. Add server credentials under ${BOLD}Credentials${NC}"
-  echo -e "  4. Talk to your AI Agent on Telegram!"
+  echo -e "  2. Set any skipped values under ${BOLD}AI Agent → AI Settings${NC}"
+  echo -e "  3. Add server credentials under ${BOLD}AI Agent → Credentials${NC}"
+  echo -e "  4. Chat with the agent from ${BOLD}AI Agent → AI Chat${NC}"
   echo ""
   echo -e "  ${BOLD}Useful commands:${NC}"
   echo -e "  • View logs  :  journalctl -u aiagentassistant -f"
@@ -623,8 +559,6 @@ summary() {
 
 # ─── Main ────────────────────────────────────────────────────────────────────
 
-ADMIN_PASS=""
-
 main() {
   preflight
   install_deps
@@ -632,7 +566,6 @@ main() {
   download_build
   configure
   install_system_config
-  setup_portal
   start_services
   summary
 }
