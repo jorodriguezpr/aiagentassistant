@@ -16,10 +16,11 @@
 
 import logger from '../utils/logger';
 import { AIToolExecutor } from '../utils/AITools';
-import { AgentState, loadAutonomousState, saveAutonomousState, addObservation } from '../utils/AutonomousState';
+import { AgentState, loadAutonomousState, saveAutonomousState, addObservation, findActiveDelegation } from '../utils/AutonomousState';
 
 const DISK_WARNING_PERCENT = 90;
 const MEMORY_WARNING_PERCENT = 90;
+const BACKUP_RETRY_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 
 /**
  * Minimal Telegram sender interface — accepts the real TelegramGateway or
@@ -51,6 +52,7 @@ export class AutonomousMonitor {
     await this.checkSystemHealth(state, criticalMessages);
     await this.checkTickets(state, criticalMessages);
     await this.checkSecurity(state, criticalMessages);
+    await this.checkBackups(state, criticalMessages);
 
     state.lastCheckAt = new Date().toISOString();
     saveAutonomousState(state);
@@ -149,6 +151,53 @@ export class AutonomousMonitor {
       }
     } catch (error: any) {
       logger.error({ error: error.message }, 'AutonomousMonitor: security check failed');
+    }
+  }
+
+  private async checkBackups(state: AgentState, criticalMessages: string[]): Promise<void> {
+    try {
+      const result = await this.executor.execute('hcp_get_backup_health', {});
+      if (!result?.success) {
+        addObservation(state, { category: 'backup', severity: 'warning', summary: `Could not check backup health: ${result?.error || 'unknown error'}` });
+        return;
+      }
+
+      const { overdue, recentFailures = [], lastBackupAt, scheduleConfigured, backupDiskUsagePercent } = result;
+      const hasProblem = overdue || recentFailures.length > 0;
+
+      if (hasProblem) {
+        const parts: string[] = [];
+        if (overdue) parts.push(`overdue (last: ${lastBackupAt || 'never'})`);
+        if (recentFailures.length > 0) parts.push(`${recentFailures.length} recent failure(s)`);
+        const msg = `Backup issue: ${parts.join(', ')}`;
+        addObservation(state, { category: 'backup', severity: 'critical', summary: msg, detail: result });
+        criticalMessages.push(`🚨 SysAdminHCP: ${msg}`);
+
+        const delegation = findActiveDelegation(state, 'backup');
+        if (delegation?.actions.autoRetryBackup) {
+          const recentRetry = state.actionLog.find(
+            (a) => a.action === 'retry_backup' && Date.now() - new Date(a.timestamp).getTime() < BACKUP_RETRY_COOLDOWN_MS
+          );
+          if (!recentRetry) {
+            const retryResult = await this.executor.execute('hcp_retry_backup', {});
+            if (retryResult?.success) {
+              addObservation(state, { category: 'backup', severity: 'info', summary: 'Auto-retried backup (delegated)' });
+            } else {
+              addObservation(state, { category: 'backup', severity: 'warning', summary: `Auto-retry backup failed: ${retryResult?.error || 'unknown error'}` });
+            }
+          } else {
+            logger.info('AutonomousMonitor: backup retry skipped, still within 6h cooldown');
+          }
+        }
+      } else if (typeof backupDiskUsagePercent === 'number' && backupDiskUsagePercent >= DISK_WARNING_PERCENT) {
+        addObservation(state, { category: 'backup', severity: 'warning', summary: `Backup disk usage at ${backupDiskUsagePercent}% (threshold ${DISK_WARNING_PERCENT}%)` });
+      } else if (!scheduleConfigured) {
+        addObservation(state, { category: 'backup', severity: 'info', summary: lastBackupAt ? `No backup schedule configured (last manual backup: ${lastBackupAt})` : 'No backup schedule configured and no backup found yet' });
+      } else {
+        addObservation(state, { category: 'backup', severity: 'info', summary: `Backups healthy (last: ${lastBackupAt})` });
+      }
+    } catch (error: any) {
+      logger.error({ error: error.message }, 'AutonomousMonitor: backup health check failed');
     }
   }
 

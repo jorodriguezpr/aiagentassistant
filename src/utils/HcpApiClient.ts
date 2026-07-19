@@ -139,6 +139,10 @@ export class HcpApiClient {
     return this.request('GET', '/api/clients');
   }
 
+  async getBackupHealth(): Promise<any> {
+    return this.request('GET', '/api/backups/health');
+  }
+
   async getIntrusionActivity(): Promise<any> {
     const [activity, topAttackers, blocklist] = await Promise.all([
       this.request('GET', '/api/intrusion/activity').catch(() => null),
@@ -164,6 +168,10 @@ export class HcpApiClient {
 
   async suspendClient(username: string): Promise<any> {
     return this.request('POST', `/api/clients/${encodeURIComponent(username)}/suspend`);
+  }
+
+  async retryBackup(): Promise<any> {
+    return this.request('POST', '/api/backups', { backupType: 'full', target: 'all', destination: 'local' });
   }
 
   async unsuspendClient(username: string): Promise<any> {

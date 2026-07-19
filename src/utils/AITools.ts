@@ -2776,6 +2776,9 @@ export class AIToolExecutor {
         case 'hcp_get_intrusion_activity':
           return await this.hcpGetIntrusionActivity();
 
+        case 'hcp_get_backup_health':
+          return await this.hcpGetBackupHealth();
+
         case 'hcp_reply_ticket':
           return await this.hcpReplyTicket(args.id, args.message);
 
@@ -2790,6 +2793,9 @@ export class AIToolExecutor {
 
         case 'hcp_unsuspend_client':
           return await this.hcpUnsuspendClient(args.username);
+
+        case 'hcp_retry_backup':
+          return await this.hcpRetryBackup();
 
         case 'hcp_notify_admin':
           return await this.hcpNotifyAdmin(args.severity, args.title, args.message);
@@ -3512,6 +3518,15 @@ export class AIToolExecutor {
     }
   }
 
+  private async hcpGetBackupHealth(): Promise<any> {
+    try {
+      const result = await getHcpApiClient().getBackupHealth();
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
   // ─── SysAdminHCP bridge (actions — delegation-gated) ──────────────────────
 
   /**
@@ -3519,7 +3534,7 @@ export class AIToolExecutor {
    * Returns the delegation if allowed, or null (having already logged why)
    * if not — callers should return a not_delegated result in that case.
    */
-  private gateAction(scope: 'tickets' | 'services' | 'clients' | 'security', actionFlag: keyof DelegationActions): { delegation: any; state: any } | null {
+  private gateAction(scope: 'tickets' | 'services' | 'clients' | 'security' | 'backup', actionFlag: keyof DelegationActions): { delegation: any; state: any } | null {
     const state = loadAutonomousState();
     const delegation = findActiveDelegation(state, scope);
     if (!delegation || !delegation.actions[actionFlag]) {
@@ -3590,6 +3605,18 @@ export class AIToolExecutor {
     try {
       const result = await getHcpApiClient().unsuspendClient(username);
       appendActionLog(gate.state, { action: 'unsuspend_client', target: username, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpRetryBackup(): Promise<any> {
+    const gate = this.gateAction('backup', 'autoRetryBackup');
+    if (!gate) return this.notDelegatedResult('Backup');
+    try {
+      const result = await getHcpApiClient().retryBackup();
+      appendActionLog(gate.state, { action: 'retry_backup', target: 'full', result, delegationId: gate.delegation.id });
       return { success: true, ...result };
     } catch (error: any) {
       return { success: false, error: error.message };

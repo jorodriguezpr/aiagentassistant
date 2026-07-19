@@ -68,6 +68,14 @@ export const HCP_TOOLS: HcpTool[] = [
       properties: {},
     },
   },
+  {
+    name: 'hcp_get_backup_health',
+    description: 'Get the SysAdminHCP control panel\'s backup health: when the last backup ran, whether a schedule is configured, whether backups are overdue, recent failures, and backup disk usage.',
+    parameters: {
+      type: 'object',
+      properties: {},
+    },
+  },
 
   // ─── Actions — each requires the admin to have created a matching active
   // delegation in the panel's Autonomous Mode page with the specific action
@@ -130,6 +138,14 @@ export const HCP_TOOLS: HcpTool[] = [
         username: { type: 'string', description: 'The client\'s username' },
       },
       required: ['username'],
+    },
+  },
+  {
+    name: 'hcp_retry_backup',
+    description: 'Start a new full backup on the SysAdminHCP control panel. Use when backup health shows overdue or failed. Requires a "backup" delegation with autoRetryBackup enabled — otherwise refuses.',
+    parameters: {
+      type: 'object',
+      properties: {},
     },
   },
 

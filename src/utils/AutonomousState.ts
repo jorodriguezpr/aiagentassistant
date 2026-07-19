@@ -26,7 +26,7 @@ const MAX_OBSERVATIONS = 200;
 const MAX_ACTION_LOG = 200;
 
 export type ObservationSeverity = 'info' | 'warning' | 'critical';
-export type ObservationCategory = 'system' | 'tickets' | 'security' | 'clients';
+export type ObservationCategory = 'system' | 'tickets' | 'security' | 'clients' | 'backup';
 
 export interface Observation {
   id: string;
@@ -37,13 +37,14 @@ export interface Observation {
   detail?: any;
 }
 
-export type DelegationScope = 'tickets' | 'services' | 'clients' | 'security';
+export type DelegationScope = 'tickets' | 'services' | 'clients' | 'security' | 'backup';
 
 export interface DelegationActions {
   autoReplyTickets?: boolean;
   autoUpdateTicketStatus?: boolean;
   autoRestartServices?: boolean;
   autoSuspendClients?: boolean;
+  autoRetryBackup?: boolean;
 }
 
 export interface Delegation {
