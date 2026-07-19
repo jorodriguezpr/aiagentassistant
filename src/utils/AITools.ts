@@ -15,6 +15,7 @@ import { SkillGenerator } from './SkillGenerator.js';
 import { getCredentialManager } from './CredentialManager';
 import { getHcpApiClient } from './HcpApiClient';
 import { HCP_TOOLS } from '../tools/hcpTools';
+import { loadAutonomousState, findActiveDelegation, appendActionLog, DelegationActions } from './AutonomousState';
 import {
   sendEmailSkill,
   readEmailSkill,
@@ -2775,6 +2776,21 @@ export class AIToolExecutor {
         case 'hcp_get_intrusion_activity':
           return await this.hcpGetIntrusionActivity();
 
+        case 'hcp_reply_ticket':
+          return await this.hcpReplyTicket(args.id, args.message);
+
+        case 'hcp_update_ticket_status':
+          return await this.hcpUpdateTicketStatus(args.id, args.status);
+
+        case 'hcp_restart_service':
+          return await this.hcpRestartService(args.serviceType, args.driverName);
+
+        case 'hcp_suspend_client':
+          return await this.hcpSuspendClient(args.username);
+
+        case 'hcp_unsuspend_client':
+          return await this.hcpUnsuspendClient(args.username);
+
         case 'get_credential':
           return await this.getCredential(args.key);
 
@@ -3487,6 +3503,90 @@ export class AIToolExecutor {
   private async hcpGetIntrusionActivity(): Promise<any> {
     try {
       const result = await getHcpApiClient().getIntrusionActivity();
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ─── SysAdminHCP bridge (actions — delegation-gated) ──────────────────────
+
+  /**
+   * Checks for an active delegation on `scope` with `actionFlag` enabled.
+   * Returns the delegation if allowed, or null (having already logged why)
+   * if not — callers should return a not_delegated result in that case.
+   */
+  private gateAction(scope: 'tickets' | 'services' | 'clients' | 'security', actionFlag: keyof DelegationActions): { delegation: any; state: any } | null {
+    const state = loadAutonomousState();
+    const delegation = findActiveDelegation(state, scope);
+    if (!delegation || !delegation.actions[actionFlag]) {
+      return null;
+    }
+    return { delegation, state };
+  }
+
+  private notDelegatedResult(scope: string): any {
+    return {
+      success: false,
+      error: 'not_delegated',
+      hint: `This action is not delegated. Ask the admin to enable it under Autonomous Mode → ${scope}.`,
+    };
+  }
+
+  private async hcpReplyTicket(id: string, message: string): Promise<any> {
+    const gate = this.gateAction('tickets', 'autoReplyTickets');
+    if (!gate) return this.notDelegatedResult('Tickets');
+    try {
+      const result = await getHcpApiClient().replyTicket(id, message);
+      appendActionLog(gate.state, { action: 'reply_ticket', target: id, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpUpdateTicketStatus(id: string, status: string): Promise<any> {
+    const gate = this.gateAction('tickets', 'autoUpdateTicketStatus');
+    if (!gate) return this.notDelegatedResult('Tickets');
+    try {
+      const result = await getHcpApiClient().updateTicketStatus(id, status);
+      appendActionLog(gate.state, { action: 'update_ticket_status', target: `${id} -> ${status}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpRestartService(serviceType: string, driverName: string): Promise<any> {
+    const gate = this.gateAction('services', 'autoRestartServices');
+    if (!gate) return this.notDelegatedResult('Services');
+    try {
+      const result = await getHcpApiClient().restartService(serviceType, driverName);
+      appendActionLog(gate.state, { action: 'restart_service', target: `${serviceType}/${driverName}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpSuspendClient(username: string): Promise<any> {
+    const gate = this.gateAction('clients', 'autoSuspendClients');
+    if (!gate) return this.notDelegatedResult('Clients');
+    try {
+      const result = await getHcpApiClient().suspendClient(username);
+      appendActionLog(gate.state, { action: 'suspend_client', target: username, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpUnsuspendClient(username: string): Promise<any> {
+    const gate = this.gateAction('clients', 'autoSuspendClients');
+    if (!gate) return this.notDelegatedResult('Clients');
+    try {
+      const result = await getHcpApiClient().unsuspendClient(username);
+      appendActionLog(gate.state, { action: 'unsuspend_client', target: username, result, delegationId: gate.delegation.id });
       return { success: true, ...result };
     } catch (error: any) {
       return { success: false, error: error.message };
