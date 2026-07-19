@@ -19,6 +19,7 @@ import { AIToolExecutor } from '../utils/AITools';
 import { AgentState, loadAutonomousState, saveAutonomousState, addObservation } from '../utils/AutonomousState';
 
 const DISK_WARNING_PERCENT = 90;
+const MEMORY_WARNING_PERCENT = 90;
 
 /**
  * Minimal Telegram sender interface — accepts the real TelegramGateway or
@@ -81,10 +82,26 @@ export class AutonomousMonitor {
         criticalMessages.push(`🚨 SysAdminHCP: ${msg}`);
       }
 
-      const diskPercent = result.disk?.usedPercent ?? result.disk?.disk?.usedPercent;
-      if (typeof diskPercent === 'number' && diskPercent >= DISK_WARNING_PERCENT) {
+      // /api/system/disk returns { disk: [{filesystem,size,used,avail,usePercent,mount}, ...] },
+      // one row per mounted filesystem -- usePercent is a string like "45%". Prefer the row for
+      // "/", falling back to the first row if "/" isn't present (e.g. a container/chroot setup).
+      const diskRows: any[] = Array.isArray(result.disk?.disk) ? result.disk.disk : [];
+      const diskRow = diskRows.find((d: any) => d?.mount === '/') || diskRows[0];
+      const diskPercent = diskRow ? parseInt(String(diskRow.usePercent).replace('%', ''), 10) : NaN;
+      if (!isNaN(diskPercent) && diskPercent >= DISK_WARNING_PERCENT) {
         const msg = `Disk usage at ${diskPercent}% (threshold ${DISK_WARNING_PERCENT}%)`;
         addObservation(state, { category: 'system', severity: 'warning', summary: msg });
+      }
+
+      // /api/system/memory returns { memory: {total,used,free,buffers,cached,swapTotal,swapUsed,swapFree} }
+      // in MiB (plain numbers, no unit parsing needed).
+      const mem = result.memory?.memory;
+      if (mem && typeof mem.total === 'number' && mem.total > 0) {
+        const memPercent = Math.round((mem.used / mem.total) * 100);
+        if (memPercent >= MEMORY_WARNING_PERCENT) {
+          const msg = `Memory usage at ${memPercent}% (${mem.used}MiB / ${mem.total}MiB, threshold ${MEMORY_WARNING_PERCENT}%)`;
+          addObservation(state, { category: 'system', severity: 'warning', summary: msg });
+        }
       }
 
       if (downServices.length === 0) {
