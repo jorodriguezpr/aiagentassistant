@@ -70,7 +70,10 @@ export class AutonomousMonitor {
       }
 
       const services = result.services?.services || {};
-      const downServices = Object.values(services).filter((s: any) => s?.isInstalled && !s?.isRunning);
+      // monitoringEnabled comes from the panel's Services -> Service Management toggle
+      // (defaults to true) -- an admin excludes an installed-but-unused alternate driver
+      // (e.g. Nginx sitting alongside the actually-active Apache) so it isn't flagged as down.
+      const downServices = Object.values(services).filter((s: any) => s?.isInstalled && !s?.isRunning && s?.monitoringEnabled !== false);
       if (downServices.length > 0) {
         const names = downServices.map((s: any) => s.name).join(', ');
         const msg = `${downServices.length} installed service(s) not running: ${names}`;
