@@ -2,7 +2,9 @@
 # Installed by: /opt/aiagentassistant/gitdeploy/install.sh
 
 # Package management for automated tool installation
-aiagent ALL=(root) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/dpkg
+# (both Debian/Ubuntu and RHEL-family binaries are listed since this file is installed on either)
+aiagent ALL=(root) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/dpkg, \
+                             /usr/bin/dnf, /usr/bin/rpm
 
 # Service control for the aiagentassistant service
 aiagent ALL=(root) NOPASSWD: /bin/systemctl restart aiagentassistant, \

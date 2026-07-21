@@ -102,16 +102,31 @@ preflight() {
 
   [[ $EUID -eq 0 ]] || die "This installer must run as root (use: sudo bash install.sh)"
 
-  # OS check
-  if ! command -v apt-get &>/dev/null; then
-    die "This installer requires a Debian/Ubuntu-based system (apt-get not found)"
-  fi
-  local os_id="" os_ver=""
-  [[ -f /etc/os-release ]] && { source /etc/os-release; os_id="$ID"; os_ver="${VERSION_ID:-}"; }
-  if [[ "$os_id" != "ubuntu" && "$os_id" != "debian" ]]; then
-    warn "OS '$os_id' is not officially tested. Proceeding anyway…"
+  # OS / package manager detection
+  local os_id="" os_id_like="" os_ver=""
+  [[ -f /etc/os-release ]] && { source /etc/os-release; os_id="$ID"; os_id_like="${ID_LIKE:-}"; os_ver="${VERSION_ID:-}"; }
+
+  if command -v apt-get &>/dev/null; then
+    PKG_MANAGER="apt"
+    SUDO_GROUP="sudo"
+    REDIS_SERVICE="redis-server"
+    if [[ "$os_id" != "ubuntu" && "$os_id" != "debian" ]]; then
+      warn "OS '$os_id' is not officially tested. Proceeding anyway…"
+    else
+      ok "OS detected: $PRETTY_NAME (apt)"
+    fi
+  elif command -v dnf &>/dev/null || command -v yum &>/dev/null; then
+    PKG_MANAGER="dnf"
+    command -v dnf &>/dev/null || PKG_MANAGER="yum"
+    SUDO_GROUP="wheel"
+    REDIS_SERVICE="redis"
+    if [[ "$os_id" =~ ^(rhel|almalinux|rocky|centos|fedora)$ || "$os_id_like" == *rhel* ]]; then
+      ok "OS detected: $PRETTY_NAME ($PKG_MANAGER)"
+    else
+      warn "OS '$os_id' is not officially tested. Proceeding anyway…"
+    fi
   else
-    ok "OS detected: $PRETTY_NAME"
+    die "This installer requires a Debian/Ubuntu (apt-get) or RHEL-family (dnf/yum) system."
   fi
 
   # Internet check
@@ -150,32 +165,68 @@ preflight() {
 install_deps() {
   step 1 "Installing system dependencies"
 
-  apt-get update -qq
-  apt-get install -y --no-install-recommends \
-    curl wget git ca-certificates gnupg \
-    redis-server redis-tools \
-    build-essential python3 \
-    sshpass whois traceroute dnsutils net-tools \
-    chromium-browser || \
-  apt-get install -y --no-install-recommends \
-    curl wget git ca-certificates gnupg \
-    redis-server redis-tools \
-    build-essential python3 \
-    sshpass whois traceroute dnsutils net-tools 2>/dev/null || true
-  ok "Base packages installed"
+  if [[ "$PKG_MANAGER" == "apt" ]]; then
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+      curl wget git ca-certificates gnupg \
+      redis-server redis-tools \
+      build-essential python3 \
+      sshpass whois traceroute dnsutils net-tools \
+      chromium-browser || \
+    apt-get install -y --no-install-recommends \
+      curl wget git ca-certificates gnupg \
+      redis-server redis-tools \
+      build-essential python3 \
+      sshpass whois traceroute dnsutils net-tools 2>/dev/null || true
+    ok "Base packages installed"
 
-  # Node.js via NodeSource if not already at v18+
-  local cur_major=0
-  if command -v node &>/dev/null; then
-    cur_major=$(node -e 'process.stdout.write(process.version.split(".")[0].replace("v",""))' 2>/dev/null || echo 0)
+    # Node.js via NodeSource if not already at v18+
+    local cur_major=0
+    if command -v node &>/dev/null; then
+      cur_major=$(node -e 'process.stdout.write(process.version.split(".")[0].replace("v",""))' 2>/dev/null || echo 0)
+    fi
+    if [[ "$cur_major" -lt 18 ]]; then
+      info "Installing Node.js ${NODE_MAJOR}.x via NodeSource…"
+      curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - >/dev/null 2>&1
+      apt-get install -y nodejs >/dev/null
+    fi
+    ok "Node.js $(node -v) / npm $(npm -v)"
+    ok "Redis $(redis-server --version | awk '{print $3}')"
+
+  else
+    # RHEL-family (AlmaLinux / RHEL / Rocky / CentOS) via dnf/yum
+    local dnf="$PKG_MANAGER"
+
+    "$dnf" install -y epel-release >/dev/null 2>&1 || true
+    "$dnf" makecache -y >/dev/null 2>&1 || true
+
+    "$dnf" install -y \
+      curl wget git ca-certificates gnupg2 \
+      redis \
+      sshpass whois traceroute bind-utils net-tools \
+      chromium || \
+    "$dnf" install -y \
+      curl wget git ca-certificates gnupg2 \
+      redis \
+      sshpass whois traceroute bind-utils net-tools 2>/dev/null || true
+    ok "Base packages installed"
+
+    "$dnf" groupinstall -y "Development Tools" >/dev/null 2>&1 || true
+    "$dnf" install -y python3 >/dev/null 2>&1 || true
+
+    # Node.js via NodeSource if not already at v18+
+    local cur_major=0
+    if command -v node &>/dev/null; then
+      cur_major=$(node -e 'process.stdout.write(process.version.split(".")[0].replace("v",""))' 2>/dev/null || echo 0)
+    fi
+    if [[ "$cur_major" -lt 18 ]]; then
+      info "Installing Node.js ${NODE_MAJOR}.x via NodeSource…"
+      curl -fsSL https://rpm.nodesource.com/setup_${NODE_MAJOR}.x | bash - >/dev/null 2>&1
+      "$dnf" install -y nodejs >/dev/null
+    fi
+    ok "Node.js $(node -v) / npm $(npm -v)"
+    ok "Redis $(redis-server --version | awk '{print $3}')"
   fi
-  if [[ "$cur_major" -lt 18 ]]; then
-    info "Installing Node.js ${NODE_MAJOR}.x via NodeSource…"
-    curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - >/dev/null 2>&1
-    apt-get install -y nodejs >/dev/null
-  fi
-  ok "Node.js $(node -v) / npm $(npm -v)"
-  ok "Redis $(redis-server --version | awk '{print $3}')"
 }
 
 # ─── Phase 2: User & Directories ─────────────────────────────────────────────
@@ -192,8 +243,8 @@ setup_dirs() {
     ok "User '$INSTALL_USER' already exists"
   fi
 
-  # Add to sudo group for diagnostics
-  usermod -aG sudo "$INSTALL_USER" 2>/dev/null || true
+  # Add to the OS's admin group for diagnostics (sudo on Debian/Ubuntu, wheel on RHEL-family)
+  usermod -aG "$SUDO_GROUP" "$INSTALL_USER" 2>/dev/null || true
 
   mkdir -p \
     "$APP_DIR/dist" \
@@ -483,9 +534,9 @@ install_system_config() {
   install -m 440 /tmp/aiagent-sudoers-install /etc/sudoers.d/aiagent
   ok "Sudoers: /etc/sudoers.d/aiagent"
 
-  # Redis
-  systemctl enable redis-server >/dev/null 2>&1 || true
-  systemctl start  redis-server >/dev/null 2>&1 || systemctl restart redis-server || true
+  # Redis (service is named "redis-server" on Debian/Ubuntu, "redis" on RHEL-family)
+  systemctl enable "$REDIS_SERVICE" >/dev/null 2>&1 || true
+  systemctl start  "$REDIS_SERVICE" >/dev/null 2>&1 || systemctl restart "$REDIS_SERVICE" || true
   ok "Redis service enabled and started"
 
   # Systemd services
