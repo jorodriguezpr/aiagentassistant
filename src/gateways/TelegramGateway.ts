@@ -30,7 +30,6 @@ import logger, { traceStore } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { saveCheckpoint, loadCheckpoint, listCheckpoints, deleteCheckpoint } from '../utils/TaskCheckpoint';
 import { eventBus } from '../utils/EventBus';
-import { classifyRequestForAgent, OperationalAgentProfile } from '../core/SpecializedAgents';
 import { DagPlan, PlanStep, StepStatus, JudgeResult, executeDagPlan, validatePlanDag } from '../core/PlanExecutor';
 import * as fs from 'fs';
 import { parseSteps, createScript, getScript, listScripts, deleteScript, markRun } from '../utils/NLScriptManager.js';
@@ -3056,21 +3055,15 @@ Be helpful and efficient. Use appropriate tools to complete requests. Provide cl
             historyLength: history.length
           }, '📝 Message to AI - active context isolated');
 
-          // ─── Agent specialization: pick focused tool set for this request ────
-          const agentProfile: OperationalAgentProfile | null = classifyRequestForAgent(text);
-          const loopTools = agentProfile
-            ? this.aiTools.filter(t => agentProfile.allowedTools.includes(t.function.name))
-            : this.aiTools;
-
-          if (agentProfile) {
-            // Inject specialized context as an extra system message (once per task)
-            history.push({
-              role: 'system',
-              content: `🤖 ACTIVE AGENT: ${agentProfile.name}\n\n${agentProfile.systemPromptSuffix}`,
-            });
-            logger.info({ agentId: agentProfile.id, toolCount: loopTools.length }, '🤖 Specialized agent activated');
-          }
-          // ──────────────────────────────────────────────────────────────────────
+          // Always use the full tool set — matches WebChatGateway's behavior. This used to
+          // classify the request and filter down to a narrow per-specialty tool subset (see
+          // SpecializedAgents.ts's SysAdmin/DB/Mail/Monitor profiles), but none of those
+          // subsets included the hcp_* tools (including hcp_search_docs), so any Telegram
+          // message whose wording happened to match a profile's keywords (e.g. "restart",
+          // "configure", "database", "mail") silently lost access to SysAdminHCP's own tools
+          // and docs and got pushed toward generic raw-SSH exploration instead — the root
+          // cause of Telegram behaving less targeted than the web chat for SysAdminHCP support.
+          const loopTools = this.aiTools;
 
           // Tool calling loop - allow AI to use tools iteratively
           let maxIterations = 240;
