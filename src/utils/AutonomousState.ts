@@ -37,7 +37,7 @@ export interface Observation {
   detail?: any;
 }
 
-export type DelegationScope = 'tickets' | 'services' | 'clients' | 'security' | 'backup';
+export type DelegationScope = 'tickets' | 'services' | 'clients' | 'security' | 'backup' | 'dns' | 'mail' | 'databases' | 'ftp' | 'ssl';
 
 export interface DelegationActions {
   autoReplyTickets?: boolean;
@@ -45,12 +45,22 @@ export interface DelegationActions {
   autoRestartServices?: boolean;
   autoSuspendClients?: boolean;
   autoRetryBackup?: boolean;
+  autoManageDnsRecords?: boolean;
+  autoManageMailAccounts?: boolean;
+  autoManageDatabases?: boolean;
+  autoManageFtpAccounts?: boolean;
+  autoManageSsl?: boolean;
 }
 
 export interface Delegation {
   id: string;
   scope: DelegationScope;
   description: string;
+  // Free-text guidance the AI uses when acting within this delegation's scope
+  // (e.g. how to word replies, what to prioritize, when to escalate). Falls
+  // back to `description` if left blank, since that's where earlier
+  // delegations already put this kind of guidance before this field existed.
+  instructions?: string;
   active: boolean;
   createdAt: string;
   createdBy: string;
@@ -66,8 +76,17 @@ export interface ActionLogEntry {
   delegationId: string;
 }
 
+// Per-category control over the Telegram channel specifically — the panel's
+// own bell notification always fires for a critical observation regardless of
+// this setting; this only mutes/unmutes Telegram pings per category (e.g. a
+// backup that's known-overdue and being worked on shouldn't re-ping every
+// 5-minute cycle until it's fixed).
+export type NotifyCategories = Record<ObservationCategory, boolean>;
+
 export interface AgentState {
   version: 1;
+  autonomousEnabled: boolean;
+  notifyCategories: NotifyCategories;
   lastCheckAt: string | null;
   observations: Observation[];
   delegations: Delegation[];
@@ -75,39 +94,47 @@ export interface AgentState {
 }
 
 function defaultState(): AgentState {
-  return { version: 1, lastCheckAt: null, observations: [], delegations: [], actionLog: [] };
+  return {
+    version: 1,
+    autonomousEnabled: true,
+    notifyCategories: { system: true, tickets: true, security: true, clients: true, backup: true },
+    lastCheckAt: null,
+    observations: [],
+    delegations: [],
+    actionLog: [],
+  };
 }
 
-let cachedState: AgentState | null = null;
-
-/** Loads state.json (creating the directory/file on first use). Cached in memory after the first read. */
+/**
+ * Loads state.json fresh from disk every call (creating the directory/file on
+ * first use). Deliberately NOT cached in memory: SysAdminHCP's panel process
+ * writes to this same file directly (delegation create/toggle, the
+ * autonomousEnabled switch) from a completely separate process — an in-memory
+ * cache here would mean those changes stay invisible to this already-running
+ * process until it restarts, which defeats the point of a live toggle/edit.
+ * The file is small, so re-reading it every cycle/action-gate check is cheap.
+ */
 export function loadAutonomousState(): AgentState {
-  if (cachedState) return cachedState;
-
   if (!fs.existsSync(STATE_DIR)) {
     fs.mkdirSync(STATE_DIR, { recursive: true });
   }
 
   if (!fs.existsSync(STATE_FILE)) {
-    cachedState = defaultState();
-    saveAutonomousState(cachedState);
-    return cachedState;
+    const fresh = defaultState();
+    saveAutonomousState(fresh);
+    return fresh;
   }
 
-  let loaded: AgentState;
   try {
     const raw = fs.readFileSync(STATE_FILE, 'utf-8');
-    loaded = { ...defaultState(), ...JSON.parse(raw) };
+    return { ...defaultState(), ...JSON.parse(raw) };
   } catch (error: any) {
     logger.error({ error: error.message }, 'Failed to parse autonomous state.json, resetting to default');
-    loaded = defaultState();
+    return defaultState();
   }
-  cachedState = loaded;
-  return loaded;
 }
 
 export function saveAutonomousState(state: AgentState): void {
-  cachedState = state;
   try {
     fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
   } catch (error: any) {

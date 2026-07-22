@@ -152,10 +152,38 @@ export class HcpApiClient {
     return { activity, topAttackers, blocklist };
   }
 
+  async getDnsZone(domainName: string): Promise<any> {
+    return this.request('GET', `/api/dns/zones/${encodeURIComponent(domainName)}`);
+  }
+
+  async getMailDomain(domainName: string): Promise<any> {
+    return this.request('GET', `/api/mail/domains/${encodeURIComponent(domainName)}`);
+  }
+
+  async listDatabases(clientName?: string): Promise<any> {
+    const qs = clientName ? `?clientName=${encodeURIComponent(clientName)}` : '';
+    return this.request('GET', `/api/databases${qs}`);
+  }
+
+  async listDatabaseUsers(clientName?: string): Promise<any> {
+    const qs = clientName ? `?clientName=${encodeURIComponent(clientName)}` : '';
+    return this.request('GET', `/api/databases/users${qs}`);
+  }
+
+  async listFtpAccounts(domainName?: string): Promise<any> {
+    const qs = domainName ? `?domainName=${encodeURIComponent(domainName)}` : '';
+    return this.request('GET', `/api/ftp${qs}`);
+  }
+
+  async listSslCertificates(): Promise<any> {
+    return this.request('GET', '/api/letsencrypt/certificates');
+  }
+
   // ─── Actions (Phase 3 — gated by delegation at the call site) ────────────
 
   async replyTicket(id: string, message: string): Promise<any> {
-    return this.request('POST', `/api/tickets/${encodeURIComponent(id)}/reply`, { message });
+    // Panel route expects { body }, not { message } -- matches theme/index.html's own reply call.
+    return this.request('POST', `/api/tickets/${encodeURIComponent(id)}/reply`, { body: message });
   }
 
   async updateTicketStatus(id: string, status: string): Promise<any> {
@@ -176,6 +204,107 @@ export class HcpApiClient {
 
   async unsuspendClient(username: string): Promise<any> {
     return this.request('POST', `/api/clients/${encodeURIComponent(username)}/unsuspend`);
+  }
+
+  async addDnsRecord(domainName: string, record: { recordType: string; hostname: string; content: string; ttl?: number; priority?: number; weight?: number; port?: number }): Promise<any> {
+    return this.request('POST', `/api/dns/zones/${encodeURIComponent(domainName)}/records`, record);
+  }
+
+  async updateDnsRecord(domainName: string, recordId: string, updates: { recordType?: string; hostname?: string; content?: string; ttl?: number; priority?: number; weight?: number }): Promise<any> {
+    return this.request('PUT', `/api/dns/zones/${encodeURIComponent(domainName)}/records/${encodeURIComponent(recordId)}`, updates);
+  }
+
+  async deleteDnsRecord(domainName: string, recordId: string): Promise<any> {
+    return this.request('DELETE', `/api/dns/zones/${encodeURIComponent(domainName)}/records/${encodeURIComponent(recordId)}`);
+  }
+
+  // ─── Mail actions ─────────────────────────────────────────────────────────
+
+  async createMailAccount(params: { username: string; domainName: string; password: string; quota?: number; clientName?: string }): Promise<any> {
+    return this.request('POST', '/api/mail/accounts', params);
+  }
+
+  async deleteMailAccount(username: string): Promise<any> {
+    // Route param is matched against the account's stored nname, which for accounts created
+    // by createMailAccount() is the bare username (not user@domain) -- see mail2.ts's comment
+    // on why nname deliberately stores the bare form.
+    return this.request('DELETE', `/api/mail/accounts/${encodeURIComponent(username)}`);
+  }
+
+  async changeMailPassword(username: string, password: string): Promise<any> {
+    return this.request('POST', `/api/mail/accounts/${encodeURIComponent(username)}/change-password`, { password });
+  }
+
+  async setMailQuota(username: string, quota: number): Promise<any> {
+    return this.request('POST', `/api/mail/accounts/${encodeURIComponent(username)}/quota`, { quota });
+  }
+
+  async toggleMailAccount(username: string, enable: boolean): Promise<any> {
+    return this.request('POST', `/api/mail/accounts/${encodeURIComponent(username)}/toggle`, { enable });
+  }
+
+  async setMailCatchall(domainName: string, email: string): Promise<any> {
+    return this.request('POST', `/api/mail/domains/${encodeURIComponent(domainName)}/catchall`, { email });
+  }
+
+  async removeMailCatchall(domainName: string): Promise<any> {
+    return this.request('DELETE', `/api/mail/domains/${encodeURIComponent(domainName)}/catchall`);
+  }
+
+  async addMailForward(email: string, destination: string, keepCopy?: boolean): Promise<any> {
+    return this.request('POST', '/api/mail/forwards', { email, destination, keepCopy });
+  }
+
+  async deleteMailForward(email: string): Promise<any> {
+    return this.request('DELETE', `/api/mail/forwards/${encodeURIComponent(email)}`);
+  }
+
+  // ─── Database actions ─────────────────────────────────────────────────────
+
+  async createDatabase(dbName: string, clientName?: string, charset?: string, collation?: string): Promise<any> {
+    return this.request('POST', '/api/databases', { dbName, clientName, charset, collation });
+  }
+
+  async deleteDatabase(dbName: string): Promise<any> {
+    // Route matches by nname, which createDatabase's route derives as `db_${dbName}`.
+    return this.request('DELETE', `/api/databases/${encodeURIComponent(`db_${dbName}`)}`);
+  }
+
+  async createDatabaseUser(dbUserName: string, password: string, host?: string, clientName?: string): Promise<any> {
+    return this.request('POST', '/api/databases/users', { dbUserName, password, host, clientName });
+  }
+
+  async grantDatabasePrivileges(dbUserName: string, dbName: string, privileges: string[]): Promise<any> {
+    // Route matches the user by nname, which createDatabaseUser's route derives as `dbuser_${dbUserName}`.
+    return this.request('POST', `/api/databases/users/${encodeURIComponent(`dbuser_${dbUserName}`)}/grant`, { dbName, privileges });
+  }
+
+  // ─── FTP actions ───────────────────────────────────────────────────────────
+
+  async createFtpAccount(params: { username: string; password: string; domainName?: string; homedir?: string; quota?: number; clientName?: string }): Promise<any> {
+    return this.request('POST', '/api/ftp', params);
+  }
+
+  async deleteFtpAccount(username: string): Promise<any> {
+    return this.request('DELETE', `/api/ftp/${encodeURIComponent(username)}`);
+  }
+
+  async changeFtpPassword(username: string, password: string): Promise<any> {
+    return this.request('POST', `/api/ftp/${encodeURIComponent(username)}/change-password`, { password });
+  }
+
+  // ─── SSL / Let's Encrypt actions ───────────────────────────────────────────
+
+  async issueSslCertificate(domainName: string, email?: string, additionalDomains?: string[]): Promise<any> {
+    return this.request('POST', '/api/letsencrypt/issue', { domainName, email, additionalDomains });
+  }
+
+  async renewSslCertificate(domainName: string): Promise<any> {
+    return this.request('POST', '/api/letsencrypt/renew', { domainName });
+  }
+
+  async revokeSslCertificate(domainName: string): Promise<any> {
+    return this.request('POST', '/api/letsencrypt/revoke', { domainName });
   }
 
   // ─── Notification (Phase 5 — not gated by delegation) ────────────────────

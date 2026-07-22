@@ -17,7 +17,7 @@
   },
   "scripts": {
     "dev": "ts-node src/index.ts",
-    "build": "tsc && node -e \"require('fs').mkdirSync('dist/knowledge', {recursive: true}); require('fs').copyFileSync('src/knowledge/action-patterns.json', 'dist/knowledge/action-patterns.json')\"",
+    "build": "tsc && node -e \"require('fs').mkdirSync('dist/knowledge', {recursive: true}); require('fs').copyFileSync('src/knowledge/action-patterns.json', 'dist/knowledge/action-patterns.json'); require('fs').copyFileSync('src/knowledge/sysadminhcpKb.json', 'dist/knowledge/sysadminhcpKb.json')\"",
     "start": "node dist/index.js",
     "aitalk": "node dist/cli/aitalk.js",
     "aitalk:dev": "ts-node src/cli/aitalk.ts",

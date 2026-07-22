@@ -15,6 +15,7 @@ import { SkillGenerator } from './SkillGenerator.js';
 import { getCredentialManager } from './CredentialManager';
 import { getHcpApiClient } from './HcpApiClient';
 import { HCP_TOOLS } from '../tools/hcpTools';
+import { searchSysAdminHcpDocs } from '../knowledge/SysAdminHcpDocs';
 import { loadAutonomousState, findActiveDelegation, appendActionLog, DelegationActions } from './AutonomousState';
 import {
   sendEmailSkill,
@@ -2761,6 +2762,9 @@ export class AIToolExecutor {
         case 'remove_package':
           return await this.removePackage(args.packages);
 
+        case 'hcp_search_docs':
+          return await this.hcpSearchDocs(args.query);
+
         case 'hcp_get_system_health':
           return await this.hcpGetSystemHealth();
 
@@ -2778,6 +2782,93 @@ export class AIToolExecutor {
 
         case 'hcp_get_backup_health':
           return await this.hcpGetBackupHealth();
+
+        case 'hcp_get_dns_zone':
+          return await this.hcpGetDnsZone(args.domainName);
+
+        case 'hcp_add_dns_record':
+          return await this.hcpAddDnsRecord(args.domainName, {
+            recordType: args.recordType, hostname: args.hostname, content: args.content,
+            ttl: args.ttl, priority: args.priority, weight: args.weight,
+          });
+
+        case 'hcp_update_dns_record':
+          return await this.hcpUpdateDnsRecord(args.domainName, args.recordId, {
+            recordType: args.recordType, hostname: args.hostname, content: args.content,
+            ttl: args.ttl, priority: args.priority, weight: args.weight,
+          });
+
+        case 'hcp_delete_dns_record':
+          return await this.hcpDeleteDnsRecord(args.domainName, args.recordId);
+
+        case 'hcp_get_mail_domain':
+          return await this.hcpGetMailDomain(args.domainName);
+
+        case 'hcp_list_databases':
+          return await this.hcpListDatabases(args.clientName, args.includeUsers);
+
+        case 'hcp_list_ftp_accounts':
+          return await this.hcpListFtpAccounts(args.domainName);
+
+        case 'hcp_list_ssl_certificates':
+          return await this.hcpListSslCertificates();
+
+        case 'hcp_create_mail_account':
+          return await this.hcpCreateMailAccount(args.username, args.domainName, args.password, args.quota);
+
+        case 'hcp_delete_mail_account':
+          return await this.hcpDeleteMailAccount(args.username);
+
+        case 'hcp_change_mail_password':
+          return await this.hcpChangeMailPassword(args.username, args.password);
+
+        case 'hcp_set_mail_quota':
+          return await this.hcpSetMailQuota(args.username, args.quota);
+
+        case 'hcp_toggle_mail_account':
+          return await this.hcpToggleMailAccount(args.username, args.enable);
+
+        case 'hcp_set_mail_catchall':
+          return await this.hcpSetMailCatchall(args.domainName, args.email);
+
+        case 'hcp_add_mail_forward':
+          return await this.hcpAddMailForward(args.email, args.destination, args.keepCopy);
+
+        case 'hcp_delete_mail_forward':
+          return await this.hcpDeleteMailForward(args.email);
+
+        case 'hcp_create_database':
+          return await this.hcpCreateDatabase(args.dbName, args.clientName, args.charset, args.collation);
+
+        case 'hcp_delete_database':
+          return await this.hcpDeleteDatabase(args.dbName);
+
+        case 'hcp_create_database_user':
+          return await this.hcpCreateDatabaseUser(args.dbUserName, args.password, args.host, args.clientName);
+
+        case 'hcp_grant_database_privileges':
+          return await this.hcpGrantDatabasePrivileges(args.dbUserName, args.dbName, args.privileges);
+
+        case 'hcp_create_ftp_account':
+          return await this.hcpCreateFtpAccount({
+            username: args.username, password: args.password, domainName: args.domainName,
+            homedir: args.homedir, quota: args.quota, clientName: args.clientName,
+          });
+
+        case 'hcp_delete_ftp_account':
+          return await this.hcpDeleteFtpAccount(args.username);
+
+        case 'hcp_change_ftp_password':
+          return await this.hcpChangeFtpPassword(args.username, args.password);
+
+        case 'hcp_issue_ssl_certificate':
+          return await this.hcpIssueSslCertificate(args.domainName, args.email, args.additionalDomains);
+
+        case 'hcp_renew_ssl_certificate':
+          return await this.hcpRenewSslCertificate(args.domainName);
+
+        case 'hcp_revoke_ssl_certificate':
+          return await this.hcpRevokeSslCertificate(args.domainName);
 
         case 'hcp_reply_ticket':
           return await this.hcpReplyTicket(args.id, args.message);
@@ -3473,6 +3564,14 @@ export class AIToolExecutor {
    */
   // ─── SysAdminHCP bridge (read-only) ───────────────────────────────────────
 
+  private async hcpSearchDocs(query: string): Promise<any> {
+    const results = searchSysAdminHcpDocs(query, 5);
+    if (!results.length) {
+      return { success: true, results: [], note: 'No matching documentation entries — do not guess; investigate live state with other hcp_ tools, or say you will follow up.' };
+    }
+    return { success: true, results: results.map((r) => ({ category: r.category, title: r.title, text: r.text })) };
+  }
+
   private async hcpGetSystemHealth(): Promise<any> {
     try {
       const health = await getHcpApiClient().getSystemHealth();
@@ -3527,6 +3626,91 @@ export class AIToolExecutor {
     }
   }
 
+  private async hcpGetDnsZone(domainName: string): Promise<any> {
+    try {
+      const result = await getHcpApiClient().getDnsZone(domainName);
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpGetMailDomain(domainName: string): Promise<any> {
+    try {
+      const result = await getHcpApiClient().getMailDomain(domainName);
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpListDatabases(clientName?: string, includeUsers?: boolean): Promise<any> {
+    try {
+      const result = await getHcpApiClient().listDatabases(clientName);
+      if (includeUsers) {
+        const usersResult = await getHcpApiClient().listDatabaseUsers(clientName);
+        return { success: true, ...result, ...usersResult };
+      }
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpListFtpAccounts(domainName?: string): Promise<any> {
+    try {
+      const result = await getHcpApiClient().listFtpAccounts(domainName);
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpListSslCertificates(): Promise<any> {
+    try {
+      const result = await getHcpApiClient().listSslCertificates();
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpAddDnsRecord(domainName: string, record: any): Promise<any> {
+    const gate = this.gateAction('dns', 'autoManageDnsRecords');
+    if (!gate) return this.notDelegatedResult('DNS');
+    try {
+      const result = await getHcpApiClient().addDnsRecord(domainName, record);
+      appendActionLog(gate.state, { action: 'add_dns_record', target: `${domainName}: ${record.hostname} ${record.recordType} ${record.content}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpUpdateDnsRecord(domainName: string, recordId: string, updates: any): Promise<any> {
+    const gate = this.gateAction('dns', 'autoManageDnsRecords');
+    if (!gate) return this.notDelegatedResult('DNS');
+    try {
+      const result = await getHcpApiClient().updateDnsRecord(domainName, recordId, updates);
+      appendActionLog(gate.state, { action: 'update_dns_record', target: `${domainName}: record ${recordId}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpDeleteDnsRecord(domainName: string, recordId: string): Promise<any> {
+    const gate = this.gateAction('dns', 'autoManageDnsRecords');
+    if (!gate) return this.notDelegatedResult('DNS');
+    try {
+      const result = await getHcpApiClient().deleteDnsRecord(domainName, recordId);
+      appendActionLog(gate.state, { action: 'delete_dns_record', target: `${domainName}: record ${recordId}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
   // ─── SysAdminHCP bridge (actions — delegation-gated) ──────────────────────
 
   /**
@@ -3534,7 +3718,7 @@ export class AIToolExecutor {
    * Returns the delegation if allowed, or null (having already logged why)
    * if not — callers should return a not_delegated result in that case.
    */
-  private gateAction(scope: 'tickets' | 'services' | 'clients' | 'security' | 'backup', actionFlag: keyof DelegationActions): { delegation: any; state: any } | null {
+  private gateAction(scope: 'tickets' | 'services' | 'clients' | 'security' | 'backup' | 'dns' | 'mail' | 'databases' | 'ftp' | 'ssl', actionFlag: keyof DelegationActions): { delegation: any; state: any } | null {
     const state = loadAutonomousState();
     const delegation = findActiveDelegation(state, scope);
     if (!delegation || !delegation.actions[actionFlag]) {
@@ -3617,6 +3801,224 @@ export class AIToolExecutor {
     try {
       const result = await getHcpApiClient().retryBackup();
       appendActionLog(gate.state, { action: 'retry_backup', target: 'full', result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpCreateMailAccount(username: string, domainName: string, password: string, quota?: number): Promise<any> {
+    const gate = this.gateAction('mail', 'autoManageMailAccounts');
+    if (!gate) return this.notDelegatedResult('Mail');
+    try {
+      const result = await getHcpApiClient().createMailAccount({ username, domainName, password, quota });
+      appendActionLog(gate.state, { action: 'create_mail_account', target: `${username}@${domainName}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpDeleteMailAccount(username: string): Promise<any> {
+    const gate = this.gateAction('mail', 'autoManageMailAccounts');
+    if (!gate) return this.notDelegatedResult('Mail');
+    try {
+      const result = await getHcpApiClient().deleteMailAccount(username);
+      appendActionLog(gate.state, { action: 'delete_mail_account', target: username, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpChangeMailPassword(username: string, password: string): Promise<any> {
+    const gate = this.gateAction('mail', 'autoManageMailAccounts');
+    if (!gate) return this.notDelegatedResult('Mail');
+    try {
+      const result = await getHcpApiClient().changeMailPassword(username, password);
+      appendActionLog(gate.state, { action: 'change_mail_password', target: username, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpSetMailQuota(username: string, quota: number): Promise<any> {
+    const gate = this.gateAction('mail', 'autoManageMailAccounts');
+    if (!gate) return this.notDelegatedResult('Mail');
+    try {
+      const result = await getHcpApiClient().setMailQuota(username, quota);
+      appendActionLog(gate.state, { action: 'set_mail_quota', target: `${username}: ${quota}MB`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpToggleMailAccount(username: string, enable: boolean): Promise<any> {
+    const gate = this.gateAction('mail', 'autoManageMailAccounts');
+    if (!gate) return this.notDelegatedResult('Mail');
+    try {
+      const result = await getHcpApiClient().toggleMailAccount(username, enable);
+      appendActionLog(gate.state, { action: 'toggle_mail_account', target: `${username}: ${enable ? 'enable' : 'disable'}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpSetMailCatchall(domainName: string, email?: string): Promise<any> {
+    const gate = this.gateAction('mail', 'autoManageMailAccounts');
+    if (!gate) return this.notDelegatedResult('Mail');
+    try {
+      const result = email
+        ? await getHcpApiClient().setMailCatchall(domainName, email)
+        : await getHcpApiClient().removeMailCatchall(domainName);
+      appendActionLog(gate.state, { action: 'set_mail_catchall', target: `${domainName}: ${email || '(cleared)'}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpAddMailForward(email: string, destination: string, keepCopy?: boolean): Promise<any> {
+    const gate = this.gateAction('mail', 'autoManageMailAccounts');
+    if (!gate) return this.notDelegatedResult('Mail');
+    try {
+      const result = await getHcpApiClient().addMailForward(email, destination, keepCopy);
+      appendActionLog(gate.state, { action: 'add_mail_forward', target: `${email} -> ${destination}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpDeleteMailForward(email: string): Promise<any> {
+    const gate = this.gateAction('mail', 'autoManageMailAccounts');
+    if (!gate) return this.notDelegatedResult('Mail');
+    try {
+      const result = await getHcpApiClient().deleteMailForward(email);
+      appendActionLog(gate.state, { action: 'delete_mail_forward', target: email, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpCreateDatabase(dbName: string, clientName?: string, charset?: string, collation?: string): Promise<any> {
+    const gate = this.gateAction('databases', 'autoManageDatabases');
+    if (!gate) return this.notDelegatedResult('Databases');
+    try {
+      const result = await getHcpApiClient().createDatabase(dbName, clientName, charset, collation);
+      appendActionLog(gate.state, { action: 'create_database', target: dbName, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpDeleteDatabase(dbName: string): Promise<any> {
+    const gate = this.gateAction('databases', 'autoManageDatabases');
+    if (!gate) return this.notDelegatedResult('Databases');
+    try {
+      const result = await getHcpApiClient().deleteDatabase(dbName);
+      appendActionLog(gate.state, { action: 'delete_database', target: dbName, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpCreateDatabaseUser(dbUserName: string, password: string, host?: string, clientName?: string): Promise<any> {
+    const gate = this.gateAction('databases', 'autoManageDatabases');
+    if (!gate) return this.notDelegatedResult('Databases');
+    try {
+      const result = await getHcpApiClient().createDatabaseUser(dbUserName, password, host, clientName);
+      appendActionLog(gate.state, { action: 'create_database_user', target: dbUserName, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpGrantDatabasePrivileges(dbUserName: string, dbName: string, privileges: string[]): Promise<any> {
+    const gate = this.gateAction('databases', 'autoManageDatabases');
+    if (!gate) return this.notDelegatedResult('Databases');
+    try {
+      const result = await getHcpApiClient().grantDatabasePrivileges(dbUserName, dbName, privileges);
+      appendActionLog(gate.state, { action: 'grant_database_privileges', target: `${dbUserName} -> ${dbName}: ${privileges.join(',')}`, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpCreateFtpAccount(params: { username: string; password: string; domainName?: string; homedir?: string; quota?: number; clientName?: string }): Promise<any> {
+    const gate = this.gateAction('ftp', 'autoManageFtpAccounts');
+    if (!gate) return this.notDelegatedResult('FTP');
+    try {
+      const result = await getHcpApiClient().createFtpAccount(params);
+      appendActionLog(gate.state, { action: 'create_ftp_account', target: params.username, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpDeleteFtpAccount(username: string): Promise<any> {
+    const gate = this.gateAction('ftp', 'autoManageFtpAccounts');
+    if (!gate) return this.notDelegatedResult('FTP');
+    try {
+      const result = await getHcpApiClient().deleteFtpAccount(username);
+      appendActionLog(gate.state, { action: 'delete_ftp_account', target: username, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpChangeFtpPassword(username: string, password: string): Promise<any> {
+    const gate = this.gateAction('ftp', 'autoManageFtpAccounts');
+    if (!gate) return this.notDelegatedResult('FTP');
+    try {
+      const result = await getHcpApiClient().changeFtpPassword(username, password);
+      appendActionLog(gate.state, { action: 'change_ftp_password', target: username, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpIssueSslCertificate(domainName: string, email?: string, additionalDomains?: string[]): Promise<any> {
+    const gate = this.gateAction('ssl', 'autoManageSsl');
+    if (!gate) return this.notDelegatedResult('SSL');
+    try {
+      const result = await getHcpApiClient().issueSslCertificate(domainName, email, additionalDomains);
+      appendActionLog(gate.state, { action: 'issue_ssl_certificate', target: domainName, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpRenewSslCertificate(domainName: string): Promise<any> {
+    const gate = this.gateAction('ssl', 'autoManageSsl');
+    if (!gate) return this.notDelegatedResult('SSL');
+    try {
+      const result = await getHcpApiClient().renewSslCertificate(domainName);
+      appendActionLog(gate.state, { action: 'renew_ssl_certificate', target: domainName, result, delegationId: gate.delegation.id });
+      return { success: true, ...result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async hcpRevokeSslCertificate(domainName: string): Promise<any> {
+    const gate = this.gateAction('ssl', 'autoManageSsl');
+    if (!gate) return this.notDelegatedResult('SSL');
+    try {
+      const result = await getHcpApiClient().revokeSslCertificate(domainName);
+      appendActionLog(gate.state, { action: 'revoke_ssl_certificate', target: domainName, result, delegationId: gate.delegation.id });
       return { success: true, ...result };
     } catch (error: any) {
       return { success: false, error: error.message };

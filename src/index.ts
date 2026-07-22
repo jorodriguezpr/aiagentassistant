@@ -465,7 +465,7 @@ async function initializeSystem(): Promise<void> {
     // Autonomous Monitor — 5-minute observation-only check cycle (system health,
     // open tickets, intrusion activity). Reuses the same tool executor built
     // above; no panel-mutating action happens in this phase.
-    const autonomousMonitor = new AutonomousMonitor(scheduledToolExecutor, telegramGateway);
+    const autonomousMonitor = new AutonomousMonitor(scheduledToolExecutor, telegramGateway, aiProvider);
     setInterval(() => {
       autonomousMonitor.runCycle().catch(e => logger.error({ error: e.message }, 'AutonomousMonitor cycle failed'));
     }, 5 * 60 * 1000);

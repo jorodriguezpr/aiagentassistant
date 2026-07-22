@@ -1,0 +1,870 @@
+{
+  "generatedAt": "2026-07-22T01:09:25.583Z",
+  "entries": [
+    {
+      "source": "faq",
+      "category": "General",
+      "title": "What is SysAdminHCP?",
+      "text": "SysAdminHCP is a self-hosted web hosting control panel for managing web servers, DNS, mail, databases, and hosting clients from a single dashboard. It runs on your own server and drives your existing Apache/DNS/mail/database stack rather than replacing it."
+    },
+    {
+      "source": "faq",
+      "category": "General",
+      "title": "Who is it for?",
+      "text": "Anyone managing their own web hosting — from a single personal server to a hosting business with multiple clients and resource plans. It's built to be a drop-in replacement for panels like cPanel or KloxoNG, with direct migration tools from both (Pro)."
+    },
+    {
+      "source": "faq",
+      "category": "General",
+      "title": "What's the difference between SysAdminHCP and SysAdminBillCP?",
+      "text": "SysAdminHCP is the control panel you install on your own server to manage hosting. SysAdminBillCP is the separate billing/client portal at license.sysadminhcp.com where you register an account, download SysAdminHCP, manage your license and invoices, and open support tickets."
+    },
+    {
+      "source": "faq",
+      "category": "General",
+      "title": "Is SysAdminHCP open source?",
+      "text": "No. SysAdminHCP is proprietary, commercial software licensed under a EULA, not sold as source code. The public GitHub repository distributes a compiled binary release plus installer scripts — application source code is not included. See the full license."
+    },
+    {
+      "source": "faq",
+      "category": "General",
+      "title": "Where can I see screenshots?",
+      "text": "See the Screenshots page for a visual tour of the dashboard, domains, DNS, mail, webmail, databases, FTP, SSL, firewall, file manager, backups, client management, license, AI Agent, and AI Spam Filter screens."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "What operating systems are supported?",
+      "text": "AlmaLinux 8, 9, and 10 (and RHEL clones like Rocky/CentOS Stream), plus Ubuntu 22.04+ and Debian via a compatibility layer. See the Requirements page for details on how the Ubuntu compatibility layer works."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "What are the minimum system requirements?",
+      "text": "There's no hard published minimum — a small test install runs fine on a modest VPS (roughly 1-2 vCPU / 2GB RAM). Real-world sizing depends on how many domains, mailboxes, and how much traffic you're hosting, same as sizing for any Apache/mail/database stack. Root or full sudo access and outbound internet access are required."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "How do I install it?",
+      "text": "Run one command as root on a fresh server:\ncurl -fsSL https://raw.githubusercontent.com/jorodriguezpr/sysadminhcp/main/autoinstall.sh | sudo bash\nIt detects your OS and runs the matching installer automatically. See Download or the Wiki for the manual alternative."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "Do I need to compile anything?",
+      "text": "No. SysAdminHCP ships as a pre-compiled single binary — the installer detects it and deploys it directly, with no TypeScript build or Node compilation step on your server."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "What are the default login credentials?",
+      "text": "After install, log in at http://<server-ip>:7778/display with username admin and password admin. Change the password immediately."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "What ports does it need open?",
+      "text": "7778 (panel HTTP), 7777 (panel HTTPS), and 80/443 for hosted websites. The installer opens these automatically in the OS firewall, but check any upstream provider firewall/security group too."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "Can I install it on a server that already has a control panel or existing web/mail stack?",
+      "text": "A fresh, dedicated server is strongly recommended. The installer takes over the web server, DNS server, mail stack, database, and firewall configuration — running it alongside an unrelated existing panel or hand-configured stack is likely to conflict."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "Does it work in WSL?",
+      "text": "Yes, the Ubuntu/AlmaLinux installers are WSL-aware (using a compatible systemd service configuration). This is mainly useful for testing/development — production hosting should run on a real server."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "What if the installer fails partway through?",
+      "text": "Check journalctl -u sysadminhcp -n 100 and the specific service that failed (e.g. systemctl status named, pure-ftpd). See the Troubleshooting section of the Wiki, or open a support ticket if you're on Pro/Pro + Support."
+    },
+    {
+      "source": "faq",
+      "category": "Installation & Requirements",
+      "title": "How do I update to a new version?",
+      "text": "Check the GitHub repository for the latest release. Updates are provided at the copyright holder's discretion under the same license terms as your original install."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "Is there a free version?",
+      "text": "Yes — the Free edition is the full core hosting panel (domains, mail, DNS, FTP, databases, security, backups, file manager, Bandwidth Analyzer, Log Center) at no cost, forever, on unlimited installs. It doesn't include the AI Agent, AI Spam Filter, Migration Tools, DNS Cluster, Support Tickets, Event Notifications, App Installer, or Email Migration."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "What's the difference between Free, Pro, and Pro + Support?",
+      "text": "Pro ($24/yr, a locked-in price through October 30, 2026 — see below) adds the AI Agent, AI Spam Filter, Migration Tools, DNS Cluster, Support Tickets, Event Notifications, App Installer, and Email Migration on top of Free, with basic non-priority ticket support. Pro + Support ($120/yr) adds priority ticket support and 4 remote-support incidents per year for control-panel issues. See the full comparison table."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "Is the $24/yr Pro price permanent?",
+      "text": "It's a locked-in early-bird price available through October 30, 2026. Order a Pro license before that date and your $24/yr rate is guaranteed for 5 years from the date you order, regardless of any future price changes. Pro ordered after October 30, 2026 will be $36/yr."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "How does license validation work?",
+      "text": "A Pro or Pro + Support license is tied to a single host's IP address. The panel periodically checks in with the billing server to confirm it's still active. If it can't reach the billing server or the license lapses, Pro features disable after a grace period."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "Can I move my license to a different server?",
+      "text": "Yes — update the registered IP from the client portal. A license only validates against one host IP at a time."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "What happens when my license expires?",
+      "text": "A renewal invoice is generated 10 days before expiry. If it lapses anyway, there's a 3-day grace period before Pro features (AI Agent, AI Spam Filter, Migration, DNS Cluster, Support Tickets, Event Notifications, App Installer, Email Migration) are disabled. The Free-edition Hosting menu itself keeps working regardless."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "Is there a grace period for new installs?",
+      "text": "Yes — new installs get 5 days to register a license (Free or Pro) before the Hosting menu locks."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "How do I upgrade from Free to Pro (or add Support)?",
+      "text": "Order a Pro or Pro + Support license from the client portal — features unlock automatically once the license activates against your server's IP."
+    },
+    {
+      "source": "faq",
+      "category": "Licensing & Pricing",
+      "title": "Is pricing per server or per domain?",
+      "text": "Per server (host/IP). The number of domains, mailboxes, or clients you host on that one server isn't separately licensed."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "What mail server does it use?",
+      "text": "A qmail-based mail stack, with integrated RainLoop webmail. Mailboxes, aliases, quotas, forwards, and mailing lists are all managed per domain from the panel."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Does it support Let's Encrypt SSL?",
+      "text": "Yes — fully automated free SSL issuance and renewal via Let's Encrypt, or you can install your own certificates manually."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Can I migrate from cPanel or KloxoNG?",
+      "text": "Yes (Pro) — direct import tools bring accounts, domains, DNS, mail, and databases across from cPanel, KloxoNG, or another SysAdminHCP server over SSH, without manual re-entry."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "What is DNS Cluster?",
+      "text": "A Pro feature that lets you designate other SysAdminHCP servers as cluster members. Every DNS zone change replicates to them automatically as a live DNS slave — redundant, geographically distributed DNS with no manual syncing. The same Pro feature also lets you import zones directly from any remote BIND server (not just other SysAdminHCP servers), including split/include-based configs like KloxoNG's."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "What is the AI Agent?",
+      "text": "A Pro feature: an AI-assisted SSH terminal and administration assistant built into the browser. Ask for a task in plain English, save recurring routines as Playbooks, and schedule them to run automatically. It also includes Autonomous Mode — continuous background monitoring of system health, support tickets, security activity, and backups, with specific actions (like restarting a service or retrying a failed backup) available for delegation. Every action stays off until you explicitly enable it, each with its own confirmation."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "What is the AI Spam Filter and which providers does it support?",
+      "text": "A Pro feature using AI to classify and quarantine spam, with one-click whitelist approval links delivered in the notification email. Supports OpenAI, Claude, Gemini, Ollama, or GitHub Copilot as the underlying provider — pick based on cost or data-handling preference."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Do I need my own AI provider account for the AI Agent or AI Spam Filter?",
+      "text": "Yes — both features connect to an AI provider using your own account and API key (Ollama Cloud, OpenAI, Anthropic/Claude, Google Gemini, or GitHub Copilot). Usage is billed by that provider directly, not through SysAdminHCP. Ollama Cloud is recommended: it's inexpensive, supports the tool-calling the AI Agent needs, and an API key is quick to generate at ollama.com/settings/keys. The glm-5.2:cloud model is a strong default choice."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Does it support multiple PHP versions?",
+      "text": "Yes — PHP-FPM with multi-version support and per-site PHP module control."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Can I manage multiple clients or run a reseller-style hosting business?",
+      "text": "Yes — create multiple client hosting accounts under one server, each with its own resource plan and scoped access, suitable for reseller hosting rather than just single-site self-hosting."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Does it support automated backups?",
+      "text": "Yes — one-click backup and restore covering web files, mail, databases, and DNS together for a full hosted account."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Can my hosting clients open support tickets to me?",
+      "text": "Yes (Pro) — Support Tickets is a self-contained help desk built into the panel, separate from your own SysAdminHCP vendor support. Your clients open tickets from their client portal with a department and priority; you manage, assign, and reply to them from the admin side."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "What are Event Notifications?",
+      "text": "A Pro feature that watches for SSL certificate expiry, domain registration expiry, disk and bandwidth quota, and service outages, and alerts both you and the affected client by email (and an optional webhook). Clients also see a live notification bell in their portal."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Can I install WordPress or other apps with one click?",
+      "text": "Yes (Pro) — the App Installer supports WordPress, Joomla, Drupal, and Nextcloud. It downloads the official release, provisions a database automatically, and configures the app unattended where a CLI installer exists (WordPress/Nextcloud/Drupal); Joomla always finishes with its own short web setup wizard."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "Can I import an existing mailbox from another host?",
+      "text": "Yes (Pro) — Email Migration connects to the old mailbox over IMAP and copies messages and folders directly into the new local mailbox. It's independent of the cPanel/KloxoNG account migration tools and is meant for a single mailbox at a time. The source password is used only for that one import and is never stored."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "How does the Bandwidth Analyzer work, and can it suspend clients automatically?",
+      "text": "It's a free/core feature. It collects real traffic from each domain's access logs on a rolling schedule, resets on a monthly billing cycle, and shows both admins and clients a usage dashboard with a 12-month history. Optional auto-suspension (with a configurable grace percentage) suspends a client automatically when they go over their bandwidth limit, and un-suspends them automatically once usage drops back under — without touching clients you suspended manually for other reasons."
+    },
+    {
+      "source": "faq",
+      "category": "Features",
+      "title": "What is the Log Center?",
+      "text": "A free/core unified log viewer covering the panel itself, Apache, mail, MySQL/MariaDB, security services (fail2ban, auth), and more — with full-text search, severity filtering, auto-refresh, and export. It also includes an audit trail of admin actions like logins, domain/client changes, and SSL issuance."
+    },
+    {
+      "source": "faq",
+      "category": "Security & Support",
+      "title": "Is two-factor authentication supported?",
+      "text": "Yes — TOTP-based 2FA is available for both admin and client logins, toggled from account settings, with one-time backup codes and a per-server label in your authenticator app."
+    },
+    {
+      "source": "faq",
+      "category": "Security & Support",
+      "title": "What security tools are built in?",
+      "text": "Firewall management, Fail2ban brute-force protection, ClamAV antivirus scanning, IP allow/deny lists, and SSH configuration management, all from the panel UI."
+    },
+    {
+      "source": "faq",
+      "category": "Security & Support",
+      "title": "How do I get help if something breaks?",
+      "text": "Free edition: community support. Pro: basic non-priority ticket support via the client portal. Pro + Support: priority ticket support, plus 4 remote-support incidents per year for control-panel issues specifically."
+    },
+    {
+      "source": "faq",
+      "category": "Security & Support",
+      "title": "Where do I report bugs or request features?",
+      "text": "Open a ticket through the client portal, regardless of edition."
+    },
+    {
+      "source": "faq",
+      "category": "Security & Support",
+      "title": "What do the remote-support incidents on Pro + Support actually cover?",
+      "text": "They cover issues with the SysAdminHCP control panel itself — not general server administration, network connectivity, or third-party software unrelated to the panel. You get 4 per year, tied to the licensed service."
+    },
+    {
+      "source": "faq",
+      "category": "Security & Support",
+      "title": "Where are the log files if I want to troubleshoot myself?",
+      "text": "Application logs live in /var/log/sysadminhcp/; the systemd journal is available via journalctl -u sysadminhcp -f. See the Troubleshooting section of the Wiki for more."
+    },
+    {
+      "source": "faq",
+      "category": "Security & Support",
+      "title": "Changing a mailbox's password fails with \"Mail account not found\" — why?",
+      "text": "This happens when the mailbox was created directly on the server (for example over SSH with vadduser) instead of through the panel's Add Account button. The mail server has the account and it works fine for sending/receiving, but the panel's own database was never told about it, so there's nothing for Change Password to update. Open that domain's Mail screen and click Sync vpopmail first — it imports any accounts (e.g. info@yourdomain.com) that exist on the server but are missing from the panel. Change Password will then work normally."
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Overview",
+      "text": "What SysAdminHCP is, and how it fits together with SysAdminBillCP.\nSysAdminHCP is a full-featured, self-hosted web hosting control panel. It runs directly on the server it manages — there's no external SaaS dependency for the panel itself — and drives your existing Apache, DNS, mail, database, and FTP stack rather than replacing it, so you keep full control of the underlying system.\nIt ships as a single compiled binary with no separate application build step. Licensing, billing, and support tickets are handled by a companion product, SysAdminBillCP, at license.sysadminhcp.com — that's also where you register an account, download the installer, order a Pro license, and open support tickets.",
+      "anchor": "overview"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Requirements & Supported OS",
+      "text": "What kind of server you need before installing.\nInstallerOperating System\ninstall-almalinux8.sh\nAlmaLinux 8 / RHEL 8 clones (Rocky, CentOS Stream 8, etc.)\ninstall-almalinux9.sh\nAlmaLinux 9 / RHEL 9 clones\ninstall-almalinux10.sh\nAlmaLinux 10 / RHEL 10 clones\ninstall-ubuntu22.sh\nUbuntu 22.04+ / Debian (bare metal or WSL)\nOther requirements\n- Root (or full sudo) access — the installer manages system services and packages\n- Outbound internet access, for package installation and periodic license validation\n- A fresh or dedicated server is strongly recommended — the installer takes over the web server, DNS server, mail stack, database, and firewall configuration\n- Node.js 20 is installed automatically by the installer via NodeSource — you don't need to install it yourself\nSizing: there's no hard published minimum RAM/CPU — a small personal or test install runs comfortably on a modest VPS (roughly 1-2 vCPU / 2GB RAM), but real-world resource needs scale with the number of domains, mailboxes, and traffic you host. Size the server the same way you would for the underlying stack (Apache/mail/database), not just the panel.\nUbuntu / Debian compatibility layer\nSysAdminHCP's code is written against the RHEL filesystem layout (/etc/httpd, /etc/named.conf, /etc/php-fpm.d, an apache run user, dnf). Rather than maintaining a separate Debian/Ubuntu fork, the Ubuntu installer builds a compatibility layer so the exact same application code runs unchanged — creating an apache system user, aliasing systemctl restart httpd to apache2.service, symlinking config paths, and compiling qmail/vpopmail/spamdyke from source (none of these ship as Debian packages).",
+      "anchor": "requirements"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Installation",
+      "text": "The recommended one-line install, and the manual alternative.\nOne-line install (recommended)\nRun this as root on a fresh server:\ncurl -fsSL https://raw.githubusercontent.com/jorodriguezpr/sysadminhcp/main/autoinstall.sh | sudo bash\nautoinstall.sh detects your OS, installs git/git-lfs if needed, clones the release repository, verifies the compiled binary downloaded correctly (it's stored via Git LFS), and automatically runs the installer matching your distro — no manual steps.\nManual clone + install\nIf you'd rather review the scripts first:\n- Install prerequisites: git and git-lfs (required — without git-lfs you only get a pointer file, not the actual binary)\n- Clone https://github.com/jorodriguezpr/sysadminhcp.git\n- Run the installer script matching your OS from the table above, e.g. sudo bash deploy/install-almalinux9.sh\nEither way, the installer detects the pre-built binary and installs it directly — no TypeScript build or compilation step on your server. It sets up the full stack (web server, DNS, mail, database, firewall) and starts SysAdminHCP as a systemd service.\nPorts opened by the installer\nPortPurpose\n7778\nPanel HTTP\n7777\nPanel HTTPS\n80 / 443\nHosted websites",
+      "anchor": "installation"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "First Login",
+      "text": "Default credentials — change these immediately.\nhttp://<server-ip>:7778/display\nUsername: admin\nPassword: admin\nChange the default password immediately after your first login, and consider enabling two-factor authentication under your admin account settings (see Security & Access Control).\nNew installs get a 5-day grace period to register a license before the Hosting menu (Domains, Web Servers, DNS, Mail, FTP, Databases, phpMyAdmin, Webmail) locks — see Licensing & Editions.",
+      "anchor": "first-login"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Licensing & Editions",
+      "text": "Free, Pro, and Pro + Support — what each includes and how validation works.\nFreeProPro + Support\nPrice\n$0 — lifetime\n$24 / year*\n$120 / year\nLicense scope\nUnlimited installs\n1 host / IP\n1 host / IP\nHosting menu (domains, mail, DNS, FTP, databases, webmail…)\n✓\n✓\n✓\nBandwidth Analyzer & Limiter, Log Center\n✓\n✓\n✓\nAI Agent, AI Spam Filter, Migration Tools, DNS Cluster\n—\n✓\n✓\nSupport Tickets, Event Notifications, App Installer, Email Migration\n—\n✓\n✓\nTicket support (for you, from us)\nCommunity\nBasic (non-priority)\nPriority\nRemote-support incidents\n—\n—\n4 / year (panel issues only)\n* $24/yr is a locked-in early-bird price available through October 30, 2026. Order before then and that rate is guaranteed for 5 years from your order date. Pro ordered after October 30, 2026 will be $36/yr.\nHow license validation works\n- Licenses are tied to the server's IP address, not a domain name\n- The panel periodically checks in with the billing server to confirm the license is still active\n- Renewal invoices are generated 10 days before expiry; after expiry there's a 3-day grace period before Pro features are disabled\n- Manage your license, invoices, and payment method from the client portal\nFull terms are in the End User License Agreement. See the full breakdown on the Editions & Pricing page.",
+      "anchor": "licensing"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Core Hosting Features",
+      "text": "Included in every edition, Free or paid.\nWeb & DNS\n- Full domain lifecycle: creation, suspension, transfer, per-domain settings\n- Apache vhost management with PHP-FPM and multi-version PHP support per site\n- DNS zone/record editing with bulk IP update tools across many domains at once\n- SSL — manual certificate installs, or fully automated free Let's Encrypt issuance and renewal\n- IP address tracking and assignment across your server fleet\n- Per-client cron job scheduling\n- GoAccess-powered web statistics per domain\nMail\n- qmail-based mail server — mailboxes, aliases, quotas, forwards, and mailing lists per domain\n- Integrated RainLoop webmail — no separate login or install\n- Delivery, bounce, and usage statistics per mailbox and domain\nDatabases & FTP\n- MySQL/MariaDB database and user management with single sign-on into phpMyAdmin\n- Pure-FTPd account management, scoped per hosted domain\nFile Manager\nA full browser-based file manager for every hosted account, with correct Unix ACL/permission handling so files stay accessible to the right web server and client users.\nBandwidth Analyzer & Limiter\nReal per-domain traffic collection from access logs, aggregated per client on a monthly billing cycle. Admins get an overview of every client's usage; clients see their own current-cycle usage, a per-domain breakdown, and a 12-month history. Optional auto-suspension (with a configurable grace percentage) suspends a client automatically when they exceed their bandwidth limit, and restores them automatically once usage drops back under — it never touches a client suspended manually for an unrelated reason.",
+      "anchor": "core-features"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Security & Access Control",
+      "text": "What's built in to lock a server down by default.\n- Firewall management from the panel UI\n- Fail2ban — automatic brute-force protection for SSH and hosted services\n- ClamAV — built-in antivirus scanning for hosted files and mail\n- IP allow/deny lists for fine-grained access control\n- SSH config management and a browser-based terminal\n- Two-factor authentication (TOTP) — available for both admin and client logins, toggled from account settings. Includes one-time backup codes and a per-server label in your authenticator app so multiple installs are distinguishable",
+      "anchor": "security-features"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Backups & Restore",
+      "text": "One-click protection and recovery.\nBackups cover a full hosted account in one step — web files, mail, databases, and DNS zone data together, not separately. Restore reverses the same process, whether you're recovering from a SysAdminHCP backup or importing an account from cPanel or KloxoNG (see Migration Tools).",
+      "anchor": "backups"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Pro Features <span class=\"shcp-wiki-badge-pro\">PRO</span>",
+      "text": "Unlocked by a Pro or Pro + Support license.\nAI Agent and AI Spam Filter require your own account with a compatible AI provider (Ollama Cloud, OpenAI, Anthropic/Claude, Google Gemini, or GitHub Copilot) — you supply the API key, and usage is billed by that provider directly, not through SysAdminHCP. Ollama Cloud is recommended: it's inexpensive, supports the tool-calling the AI Agent needs, and an API key is quick to generate at ollama.com/settings/keys — the glm-5.2:cloud model is a strong default choice.\nAI Agent\nAn AI-assisted SSH terminal and system administration assistant, built into the browser. Ask a question or request a task in plain English, save recurring routines as a Playbook, and schedule playbooks to run automatically. Also includes Autonomous Mode: continuous background monitoring of system health, support tickets, security activity, and backups, with specific actions (restart a service, reply to a ticket, retry a failed backup) available for delegation — every action stays off until explicitly enabled, each with its own confirmation.\nAI Spam Filter\nAI-powered spam detection with quarantine and one-click whitelist approval links delivered right in the notification email. Supports multiple AI providers — OpenAI, Claude, Gemini, Ollama, or GitHub Copilot — so you can choose based on cost or data-handling preference.\nMigration Tools\nDirect import from cPanel, KloxoNG, or another SysAdminHCP server over SSH — accounts, domains, DNS, mail, and databases come across without manual re-entry.\nDNS Cluster & Remote Zone Import\nDesignate other SysAdminHCP servers as cluster members, and every DNS zone change replicates to them automatically as a live DNS slave — redundant, geographically distributed DNS with zero manual sync. Also import zones directly from any remote BIND server (not just other SysAdminHCP servers), including split/include-based configs like KloxoNG's.\nSupport Tickets\nA self-contained help desk for your own hosting clients — separate from your own SysAdminHCP vendor support. Configurable departments, priorities, assignment, and threaded replies, with both an admin management view and a client-facing \"My Tickets\" area.\nEvent Notifications\nAutomatic checks for SSL certificate expiry, domain registration expiry, disk quota, bandwidth quota, and service outages, delivered by email and an optional webhook. Clients see a live notification bell with a dropdown in their portal; rules and thresholds are configurable per check.\nApp Installer\nOne-click installs for WordPress, Joomla, Drupal, and Nextcloud onto any domain. Downloads the official release, extracts it into the domain's docroot, and provisions a MySQL database automatically. WordPress, Nextcloud, and Drupal finish unattended when their CLI installer (wp-cli / occ / drush) is available on the server; otherwise (and always for Joomla, which has no official CLI installer) the files and database are staged and the standard web setup wizard finishes the job.\nEmail Migration\nStandalone IMAP-based mailbox import, independent of the cPanel/KloxoNG account migration tools. Connects to a single mailbox on another mail provider and copies its messages and folders directly into a local Maildir — no SMTP relay involved. The source password is used only for the duration of that one import and is never written to disk.",
+      "anchor": "pro-features"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Client & Reseller Management",
+      "text": "Hosting more than one customer? SysAdminHCP supports it natively.\nCreate multiple client hosting accounts under a single server, each with its own resource plan (disk, bandwidth, domain/mailbox limits), file manager scope, and portal access — suitable for reseller-style hosting businesses, not just single-site self-hosting.",
+      "anchor": "client-management"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Administration & Maintenance",
+      "text": "Day-to-day service management once it's installed.\nService management\nsudo systemctl start sysadminhcp\nsudo systemctl stop sysadminhcp\nsudo systemctl restart sysadminhcp\nsudo systemctl status sysadminhcp\nLogs & the Log Center\nThe panel's Log Center (System → Log Center) is the fastest way to look at logs day to day: a grouped sidebar covering the panel itself, web server, mail, database, and security services, with full-text search, severity filtering, auto-refresh, export, and an audit trail of admin actions (logins, domain/client changes, SSL issuance, and more). For direct file/CLI access:\n- Application logs: /var/log/sysadminhcp/\n- Systemd journal: journalctl -u sysadminhcp -f\nConfiguration\nEdit /usr/local/sysadminhcp/etc/sysadminhcp.env to change port numbers, database type, session secrets, and other runtime settings.\nDatabase\nSysAdminHCP uses an embedded database (sql.js/SQLite) by default — no external database server required, and tables are auto-created on first startup. For higher-traffic production installs, it can be switched to MariaDB via the same env file.",
+      "anchor": "administration"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Troubleshooting",
+      "text": "Where to look first when something isn't working.\n- Panel won't load after install: check systemctl status sysadminhcp and journalctl -u sysadminhcp -n 100 for the actual startup error\n- Health check: curl http://localhost:7778/health should return a JSON status if the service is actually listening\n- A dependent service failed to start (DNS, FTP, mail): check that service's own status/logs (e.g. systemctl status named, systemctl status pure-ftpd) — the installer sets these up, but a misconfigured pre-existing install can conflict\n- Firewall/port issues: confirm ports 7778, 7777, 80, and 443 are actually open both in the OS firewall and any upstream/provider-level firewall or security group\n- Ubuntu/Debian-specific issues: see the compatibility-layer notes under Requirements — most Ubuntu install issues trace back to one of the compatibility symlinks/aliases not being in place\n- \"Mail account not found\" when changing an email password: the mailbox (e.g. info@yourdomain.com) was likely created directly on the server rather than through the panel's Add Account button, so the panel's database doesn't have a record of it yet even though the mail server does. Open that domain's Mail screen and click Sync vpopmail to import it, then Change Password will work normally.",
+      "anchor": "troubleshooting"
+    },
+    {
+      "source": "wiki",
+      "category": "Wiki",
+      "title": "Getting Help",
+      "text": "Support scales with your edition.\n- Free edition: community support\n- Pro edition: basic, non-priority ticket support via the client portal\n- Pro + Support: priority ticket support, plus 4 remote-support incidents per year for issues with the control panel itself (not general server, network, or third-party software issues)\nOpen a ticket, manage your license, and view invoices from the SysAdminBillCP client portal. See also the FAQ and User Manuals pages.",
+      "anchor": "support"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Getting Started",
+      "text": "Install the panel and complete first-run setup.\n- Register a SysAdminBillCP account and download the installer\n- Run the installer on a fresh Linux server\n- Log in with the admin credentials shown at the end of setup\n- Add your first domain under Domains"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "License Activation",
+      "text": "Activate your Free or Pro license.\n- Open License in the sidebar\n- Enter your license key and billing server URL, or leave both blank\n- Click Re-validate Now — the panel checks the billing server for a license matching this server's IP if none is configured\n- Pro features unlock automatically once active"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Domains & DNS",
+      "text": "Add domains and manage DNS zones.\n- Create a domain under Domains\n- Edit its DNS zone under DNS\n- Use bulk IP update tools when migrating servers\n- Issue a free SSL certificate under Let's Encrypt"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Mail Setup",
+      "text": "Create mailboxes and enable the AI Spam Filter.\n- Add mailboxes under Mail\n- Access webmail directly from the sidebar\n- Enable AI Spam Filter (Pro) and review the quarantine\n- Approve senders with one-click whitelisting"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Migrating from cPanel / KloxoNG",
+      "text": "Import existing accounts without starting over.\n- Open Migration (Pro)\n- Provide SSH access to the source server\n- Select the accounts to import\n- Review the migration report once complete"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Backup & Restore",
+      "text": "Protect and recover hosted accounts.\n- Configure a backup schedule under Backups\n- Run an on-demand backup at any time\n- Restore a full account — web, mail, databases & DNS — in one step"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Using the AI Agent",
+      "text": "Automate routine administration with natural language.\n- Open AI Agent → Overview (Pro)\n- Ask a question or request a task in plain English\n- Save recurring routines as a Playbook\n- Schedule playbooks to run automatically"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Security Hardening",
+      "text": "Lock down a new server.\n- Review SSH Config and disable password auth if using keys\n- Enable Fail2ban and Firewall rules\n- Schedule ClamAV scans\n- Maintain IP allow/deny lists as needed"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Installing an App with App Installer",
+      "text": "Get WordPress or another app live in a couple of clicks.\n- Open Server → App Installer (Pro)\n- Pick an app (WordPress, Joomla, Drupal, or Nextcloud), a domain, and an optional subdirectory\n- Start the install — files and database are provisioned automatically\n- Finish the short web setup wizard if the summary says one's needed"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Email Migration (IMAP Import)",
+      "text": "Bring a mailbox over from another host.\n- Open System → Email Migration (Pro)\n- Enter the old mailbox's IMAP host, username, and password\n- Choose or create the destination mailbox on this server\n- Start the import — messages and folders copy directly in, and the source password is never stored"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Support Tickets & Notifications",
+      "text": "Give your clients a help desk and automatic alerts.\n- Manage ticket departments and replies under Users → Support Tickets (Pro)\n- Clients open and reply to their own tickets from the client portal\n- Configure alert rules under System → Event Notifications (Pro) for SSL/domain expiry, quota, and service outages"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Bandwidth Analyzer & Limiter",
+      "text": "Track and cap client traffic.\n- Open Server → Bandwidth Analyzer for the admin overview of every client\n- Click a client to see their per-domain breakdown and 12-month history\n- Set a grace percentage and enable auto-suspend under Settings for automatic overquota enforcement"
+    },
+    {
+      "source": "manuals",
+      "category": "Manuals",
+      "title": "Getting Help",
+      "text": "Where to go when you're stuck.\n- Free edition: community support\n- Pro edition: basic, non-priority ticket support via the client portal\n- Pro + Support: priority ticket support, plus 4 remote-support incidents/year for panel issues\n- Manage your license and invoices from the client portal"
+    },
+    {
+      "source": "editions",
+      "category": "Editions & Pricing",
+      "title": "Free Edition",
+      "text": "Free Edition\nThe full core hosting control panel, free forever.\n$0\n- Domains, web server & DNS management\n- Mail, webmail, FTP & databases\n- SSL / Let's Encrypt automation\n- Firewall, Fail2ban, ClamAV, IP lists\n- File manager, cron jobs, backups & restore\n- Client accounts & resource plans\n- Bandwidth Analyzer & Limiter\n- Log Center & audit trail\nNOT included: AI Agent\nNOT included: AI Spam Filter\nNOT included: cPanel / KloxoNG migration tools\nNOT included: DNS Cluster & Remote Zone Import\nNOT included: Support Tickets & Event Notifications\nNOT included: App Installer & Email Migration"
+    },
+    {
+      "source": "editions",
+      "category": "Editions & Pricing",
+      "title": "Pro Edition",
+      "text": "Most popular\nPro Edition\nFree edition + AI-assisted automation and migration tools.\n$24/yr\nLocked-in price — order before Oct 30, 2026 to keep it for 5 years. $36/yr after.\n- Everything in Free Edition\n- AI Agent — natural-language admin, playbooks, scheduled tasks\n- AI Spam Filter — quarantine & one-click whitelisting\n- One-click cPanel & KloxoNG migration\n- DNS Cluster — automatic zone replication & remote zone import\n- Support Tickets & Event Notifications for your clients\n- App Installer (WordPress, Joomla, Drupal, Nextcloud) & Email Migration\n- Basic, non-priority ticket support (for you, from us)\n- 1 host / IP per license"
+    },
+    {
+      "source": "editions",
+      "category": "Editions & Pricing",
+      "title": "Pro Edition + Support",
+      "text": "Priority support\nPro Edition + Support\nEverything in Pro, plus priority support and hands-on help with your panel.\n$120/yr\n- Everything in Pro Edition\n- Priority ticket support\n- 4 remote-support incidents / year on the host running SysAdminHCP\n- 1 host / IP per license"
+    },
+    {
+      "source": "features",
+      "category": "Domains, web & DNS",
+      "title": "Domain management",
+      "text": "Full domain lifecycle: creation, suspension, transfer, and per-domain settings. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Domains, web & DNS",
+      "title": "Web server & vhosts",
+      "text": "Apache vhost management with PHP-FPM and PHP module control per site. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Domains, web & DNS",
+      "title": "DNS management",
+      "text": "Full DNS zone editing with bulk IP update tools across many domains at once. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Domains, web & DNS",
+      "title": "SSL & Let's Encrypt",
+      "text": "Manual SSL certificate installs or fully automated free Let's Encrypt issuance and renewal. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Domains, web & DNS",
+      "title": "IP address management",
+      "text": "Track and assign IP addresses across your server fleet. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Domains, web & DNS",
+      "title": "Cron jobs",
+      "text": "A full cron job manager for scheduled tasks on every hosted account. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Mail & webmail",
+      "title": "Email accounts",
+      "text": "Create and manage mailboxes, aliases, and quotas per domain. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Mail & webmail",
+      "title": "Email statistics",
+      "text": "Delivery, bounce, and usage stats per mailbox and per domain. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Mail & webmail",
+      "title": "Integrated webmail",
+      "text": "A built-in webmail client — no separate login or install required. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Mail & webmail",
+      "title": "AI Spam Filter",
+      "text": "AI-based spam detection with quarantine, one-click whitelisting, and multi-provider support.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "Lock it down by default",
+      "title": "Firewall",
+      "text": "System-level firewall management from the panel UI. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Lock it down by default",
+      "title": "Fail2ban",
+      "text": "Automatic brute-force protection for SSH and hosted services. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Lock it down by default",
+      "title": "ClamAV",
+      "text": "Built-in antivirus scanning for hosted files and mail. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Lock it down by default",
+      "title": "IP allow / deny lists",
+      "text": "Whitelist and blocklist management for fine-grained access control. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Lock it down by default",
+      "title": "SSH config & terminal",
+      "text": "Manage SSH settings and open a terminal session straight from the browser. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Lock it down by default",
+      "title": "Licensing system",
+      "text": "Built-in license activation and validation, integrated with SysAdminBillCP. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "File manager",
+      "text": "A full browser-based file manager for every hosted account. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "Databases & phpMyAdmin",
+      "text": "MySQL/MariaDB database management with single sign-on into phpMyAdmin. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "FTP accounts",
+      "text": "Create and manage FTP accounts scoped to each hosted domain. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "Backup & restore",
+      "text": "One-click backups and restores covering web, mail, databases, and DNS. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "cPanel & KloxoNG migration",
+      "text": "Direct import tools to move accounts in from cPanel or KloxoNG without manual re-entry.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "DNS Cluster & Remote Zone Import",
+      "text": "Designate other SysAdminHCP servers as cluster members and every zone change replicates to them automatically as a live BIND slave — redundant, geographically distributed DNS with zero manual sync. Also import zones directly from any remote BIND server (including split/include-based configs like KloxoNG's), no re-typing records by hand.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "Client & resource plans",
+      "text": "Manage client accounts with configurable resource plans and limits. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "App Installer",
+      "text": "One-click WordPress, Joomla, Drupal, and Nextcloud installs onto any domain — downloads the release, provisions the database, and configures it automatically where a CLI installer is available.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "Email Migration",
+      "text": "Pull an old mailbox over from another provider via IMAP straight into the local mail server — no separate migration tool, and the source password is never stored.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "Files, databases & backups",
+      "title": "Bandwidth Analyzer & Limiter",
+      "text": "Real per-domain traffic collection from access logs on a monthly billing cycle, with admin and client dashboards, 12-month history, and configurable auto-suspension when a client goes over their quota. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Support tickets & alerts",
+      "title": "Support Tickets",
+      "text": "A self-contained help desk for your own hosting clients — departments, priorities, and threaded replies — independent of your SysAdminHCP vendor support channel.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "Support tickets & alerts",
+      "title": "Event Notifications",
+      "text": "Automatic alerts for SSL and domain expiry, disk and bandwidth quota, and service outages — delivered by email and optional webhook, with a live bell/dropdown in the client portal.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "Support tickets & alerts",
+      "title": "Log Center",
+      "text": "A unified log viewer across the panel, web server, mail, database, and security services, with search, severity filtering, auto-refresh, export, and an audit trail of admin actions. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "AI Agent",
+      "title": "Natural-language admin",
+      "text": "Ask the AI Agent to perform routine server administration tasks in plain English.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "AI Agent",
+      "title": "Playbooks & NL scripts",
+      "text": "Save repeatable admin routines as playbooks the agent can run on demand or on a schedule.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "AI Agent",
+      "title": "Scheduled tasks & private KB",
+      "text": "Schedule recurring agent tasks and give it a private knowledge base about your environment.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "AI Agent",
+      "title": "Autonomous Mode",
+      "text": "Continuous background monitoring of system health, support tickets, security activity, and backups. Specific actions — restart a service, reply to a ticket, retry a failed backup — are available for delegation, but every action stays off until you explicitly enable it, each with its own confirmation.\nPRO (Pro feature)"
+    },
+    {
+      "source": "features",
+      "category": "Themes & white-label appearance",
+      "title": "Multiple themes",
+      "text": "Several built-in themes for both the admin panel and client portal. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Themes & white-label appearance",
+      "title": "Density & font controls",
+      "text": "Fine-tune spacing and font size to match how your team likes to work. (Free feature)"
+    },
+    {
+      "source": "features",
+      "category": "Themes & white-label appearance",
+      "title": "White-label ready",
+      "text": "Brand the panel and client portal as your own hosting product. (Free feature)"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Authentication",
+      "text": "SysAdminHCP uses stateless JWT bearer tokens for API authentication. There are two ways to obtain one: log in with your account's real username/password (below — this is what the web UI itself uses), or generate a self-service API key and exchange it for a token instead. Skip ahead to API keys if you're building a script or integration rather than a browser session — it's the recommended approach and doesn't require handling your real account password.\n1. Log in\nPOST /api/auth/login\nContent-Type: application/json\n{\n\"username\": \"admin\",\n\"password\": \"your-password\"\n}\nOn success:\n{\n\"success\": true,\n\"token\": \"eyJhbGciOiJIUzI1NiIs...\",\n\"user\": {\n\"username\": \"admin\",\n\"email\": \"admin@example.com\",\n\"loginType\": \"superadmin\",\n\"realname\": \"Administrator\"\n}\n}\nIf the account has two-factor authentication enabled, the response instead looks like this, and you must complete the second step below before you have a usable token:\n{ \"success\": false, \"mfaRequired\": true, \"mfaToken\": \"eyJhbGciOiJIUzI1NiIs...\" }\n2. Complete two-factor login (only if required)\nPOST /api/auth/verify-2fa\nContent-Type: application/json\n{\n\"mfaToken\": \"<mfaToken from step 1>\",\n\"code\": \"123456\"\n}\nAccepts either a live 6-digit TOTP code or a one-time backup code. Returns the same {success, token, user} shape as a normal login on success.\n3. Use the token\nSend it on every subsequent request as a Bearer token:\ncurl https://<your-server>:7777/api/domains \\\n-H \"Authorization: Bearer <TOKEN>\"\nTokens are valid for 24 hours from issuance (expiresIn: '24h') and are also accepted as a ?token= query-string parameter for the rare cases where a client can't set a header (e.g. streaming/EventSource connections used by the AI Agent chat and Backup log tailing).\nAPI keys — recommended for scripts & external integrations\nLogging in with your real account username/password (above) is meant for the browser UI. For anything programmatic — a script, a CI job, a third-party integration — use a self-service API key instead. A key is generated from your own account (Admin → Settings for admin accounts, My Account for client accounts), can be revoked independently at any time, and — critically — cannot be used to log into the panel UI itself. It can only be exchanged for a normal access token at the endpoint below. Revoking a key never touches your account password, and changing your password never invalidates your keys.\nGenerate a key once (from the UI, or by calling this yourself while already logged in):\nPOST /api/auth/api-keys\nAuthorization: Bearer <TOKEN from a normal login>\nContent-Type: application/json\n{ \"label\": \"Backup automation\", \"expiresInDays\": 90 }\n{\n\"success\": true,\n\"apiKey\": \"3f9a1c2b8e7d4f10.9c4b7a2e1f8d3c6b5a0e9f8d7c6b5a4e3d2c1b0a9f8e7d6c\",\n\"id\": \"3f9a1c2b8e7d4f10\",\n\"label\": \"Backup automation\",\n\"expiresAt\": \"2026-10-08T00:00:00.000Z\"\n}\nThe full apiKey value is only ever shown once — store it now. From then on, exchange it for a bearer token whenever your script needs one:\ncurl -X POST https://<your-server>:7777/api/auth/api-login \\\n-H \"Content-Type: application/json\" \\\n-d '{\"apiKey\":\"3f9a1c2b8e7d4f10.9c4b7a2e1f8d3c6b5a0e9f8d7c6b5a4e3d2c1b0a9f8e7d6c\"}'\n{ \"success\": true, \"token\": \"eyJhbGciOiJIUzI1NiIs...\", \"user\": { \"username\": \"…\", \"loginType\": \"…\", ... } }\nThe returned token works exactly like one from a normal login — same 24h expiry, same Authorization: Bearer usage, and it inherits exactly this account's own privileges (an admin key gets an admin token; a customer key gets a token scoped to that customer's own resources) — nothing more, nothing less. Unlike password login, this exchange always succeeds or fails outright; it never triggers a 2FA challenge, since a scoped, independently-revocable, high-entropy key is already a different trust model than an interactive password.\nManaging your own keys\nMethod & PathDescription\nPOST /api/auth/api-keys\nBody: label?, expiresInDays?. Creates a key owned by the calling account. Returns the raw apiKey exactly once.\nGET /api/auth/api-keys\nLists only your own keys (never another account's) — label, creation/expiry dates, last-used time/IP, status. The secret itself is never returned again.\nDELETE /api/auth/api-keys/:id\nRevokes one of your own keys immediately. A mismatched id (someone else's key) 404s exactly like a nonexistent one — no information about other accounts' keys leaks through this endpoint.\nPOST /api/auth/api-login\npublic — no existing token required, since this is how you obtain one. Body: { \"apiKey\": \"<id>.<secret>\" }.\nOther auth endpoints\nMethod & PathAuthDescription\nPOST /api/auth/logout\nany user\nInvalidates the current session record. Reads the token from the session or the Authorization header.\nPOST /api/auth/change-password\nany user\nBody: currentPassword, newPassword. 400 if the current password is wrong.\nGET /api/auth/me\nany user\nReturns the decoded JWT payload for the current caller — a cheap way to check \"am I still logged in, and as whom.\"\nPOST /api/auth/login-as\nadmin\nBody: username. Admin-only impersonation — mints a fresh 24h token for the named client without needing their password, for support/troubleshooting. The issued token is flagged loginAs: true, originalAdmin: <admin username>.\nTwo-factor enrollment (as opposed to login) is self-service and lives under the client portal API — see Client Self-Service → Account Settings (POST /api/client/account/2fa/setup, /confirm, /disable)."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Roles & Permissions",
+      "text": "Every account (Client row) has a loginType and, for non-admin types, a set of granular privilege flags.\nLogin types\nTypeMeaning\nsuperadmin\nFull control, including server-level operations (SSH config, firewall, self-update, license). Passes every requireAdmin check.\nadmin\nSame practical access as superadmin for almost everything in this API — the two are treated identically by requireAdmin.\nmaster\nRecognized by a handful of routes (e.g. login-as, client-area ownership checks) as admin-equivalent, but not by the plain requireAdmin middleware used on most routes — an inconsistency worth testing against your actual use case rather than assuming full parity with admin.\nwholesale / reseller\nOwn a set of sub-Client accounts (parent pointing at the reseller). Subject to the same per-resource privilege flags as a customer unless explicitly given admin-equivalent treatment by a specific route.\ncustomer\nA regular hosting client. Everything under /api/client/* scopes to resources this account owns.\nPer-client privilege flags (ClientPrivileges)\nFor non-admin login types, fine-grained booleans on the client record gate individual actions in the client-area API. All default to true except the three server-management flags, which default false and are effectively unused by any client-facing route (server management is admin-only regardless):\ndomain_flag, domain_add_flag, domain_delete_flag, domain_status_flag, domain_limit_flag\nmail_flag, mail_add_flag, mail_delete_flag, mail_password_flag\nftp_flag, ftp_add_flag, ftp_delete_flag, ftp_password_flag\ndatabase_flag, database_add_flag, database_delete_flag, database_password_flag\ndns_flag, dns_add_flag, dns_delete_flag\nssl_flag, ssl_add_flag, ssl_delete_flag\nbackup_flag, backup_restore_flag\nserver_flag, server_config_flag, server_info_flag // default false, admin-only in practice\nMiddleware you'll see referenced throughout this reference\nMiddlewareEffect\nrequireAdmin\n401 if not logged in; 403 unless loginType is superadmin or admin.\nrequireHostingAccess\n402 unless the server has any active license (free or Pro) and its 5-day post-install grace period hasn't lapsed without one. Gates almost the entire Hosting menu (domains, web, DNS, mail, databases, FTP, SSL, phpMyAdmin, email stats, webmail).\nrequireLicenseFeature('migration')\n402 unless the Pro-tier migration feature is licensed. Gates account-migration tools and DNS Cluster replication.\nrequireLicenseFeature('ai-spam-filter') / ('ai-agent')\n402 unless that specific Pro add-on is licensed.\nper-resource ownership check (no shared name)\nMany client-area routes manually verify resource.clientName === req.user.username (or isAdmin(req.user)) before acting — see the per-module notes for where this is, and isn't, actually enforced.\nServer-to-server API keys (not JWT)\nThree narrow slices of the API are authenticated differently, because the caller is another server rather than a logged-in user. Both use the same Authorization: Bearer <id>.<secret> shape (an id and a bcrypt-hashed secret joined by a dot), but are separate key types stored in separate tables:\nKey typeMinted viaConsumed by\nMigration API key\nPOST /api/migration/api-keys (admin, Pro-licensed)\n/api/migration-export/* and /api/dns-sync/*\nBilling API key\nPOST /api/license/billing-keys (admin)\n/api/billing-api/* (called by the separate SysAdminBillCP product)\nBoth key types return their raw secret exactly once, at creation time — store it then, since it can never be retrieved again (only revoked/rotated)."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Conventions",
+      "text": "Errors\nFailures return a non-2xx status with a JSON body shaped { \"error\": \"human-readable message\" }. There is no machine-readable error code field anywhere in this API — match on the HTTP status and/or message text.\nPassword hygiene\nList/get endpoints for FTP users, mail accounts, database users, and SSL certificates consistently strip password/privateKey from JSON responses. Never expect a plaintext credential back from a GET.\nLong-running operations\nBackups, restores, migrations, and installs run in the background. The triggering endpoint responds immediately with a taskId; poll its status with:\nGET /api/system/tasks/:id\n{\n\"task\": {\n\"id\": \"...\", \"type\": \"backup\",\n\"status\": \"running\", // | \"completed\" | \"failed\"\n\"progress\": 42,\n\"message\": \"Dumping databases…\"\n}\n}\nFire-and-forget side effects\nSeveral mutating endpoints (DNS zone/record changes replicating to cluster peers, license auto-revalidation after an IP switch, feature-enable calls after a billing push) kick off a side effect without awaiting it. A 200/{success:true} response confirms the primary action, not that every downstream effect has finished — see each module's notes for which calls this applies to."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Known Limitations & Security Notes",
+      "text": "This is a direct-from-source-code audit, not marketing copy. If you're integrating against this API — especially exposing any of it to less-trusted callers than \"the server's own admin\" — read this section before you rely on assumptions the endpoint names might suggest.\nWeakest spot: /api/clients\nPUT /api/clients/:username, POST /api/clients/:username/suspend, /unsuspend, and /change-password have no admin check and no ownership check — the underlying service methods take a bare username string with no verification that the caller has any right to touch that account. As shipped, any authenticated user (including the lowest-privilege customer login) can rename fields on, suspend/unsuspend, or reset the password of any other account on the panel by username alone. If you expose this router at all, put your own authorization layer in front of these four routes rather than trusting the panel's own gating.\nFully unauthenticated (session-only) routers\n/api/firewall/* and /api/ssl/* have no requireAdmin anywhere — any logged-in user, including a plain customer, can add/remove firewall rules, block/allow arbitrary IPs, restart the firewall, or install a certificate for a domain name they don't own. /api/resource-plans/* similarly has no admin gate on its full CRUD. /api/webmail/* lets any authenticated user install/uninstall/switch the panel's global webmail client. /api/spam-filter/* (global provider config, API keys, any domain's whitelist/blacklist) is gated only by the Pro license feature, not by role.\nCommand construction\nfirewall.ts's routes interpolate caller-supplied ip/port values directly into shell command strings run via a shell-invoking exec() rather than an argv-array execFile() — unusual characters in those fields are a command-injection risk, not just a validation gap. backups.ts's remote-destination credentials are shell-escaped with a denylist (stripping specific characters) rather than passed as safely-quoted arguments.\nThree independent firewall surfaces, three independent DNS-cluster/backup implementations\n/api/system/firewall/* (DB-tracked, CSF + firewalld), /api/firewall/* (stateless, firewalld/iptables only), and /api/security/blocked-ips+/whitelist (firewalld zones only) all manage overlapping state without being kept in sync — a block placed through one surface won't show up in another's listing. Likewise there are two parallel backup/restore implementations (/api/system/backup, synchronous/blocking; /api/backups/*, async/task-tracked — the one the UI actually uses) and two parallel CRUD surfaces for resource plans (/api/system/resource-plans and /api/resource-plans) hitting the identical underlying table with different validation rules.\nInconsistent delete semantics\nDELETE /api/domains/:name and DELETE /api/dns/zones/:domainName tear down real system state (vhosts, zone files). DELETE on /api/databases/:dbName, /api/ftp/:username, and /api/ssl/:domainName only remove the panel's database row — the underlying MySQL database, FTP account, or on-disk certificate/vhost SSL config is left in place. Don't assume a 200 response means the resource is actually gone from the server.\nConfig editors write straight to disk and reload\nThe raw vhost/SSL-vhost/webmail-vhost editors (in both web.ts and clientArea.ts) write caller-supplied config text directly into the live Apache config directory and reload the web server, with no syntax validation (no apachectl configtest/nginx -t) before the reload. A malformed vhost can take down every domain on the box.\ncurl | bash trust model for self-update\nPOST /api/system/self-update fetches and executes the official installer script as root over plain HTTPS, with no signature/checksum verification beyond TLS transport. This mirrors how the installer is meant to be run manually, so it isn't a new risk introduced by the button — just worth knowing the trust boundary is \"GitHub + your DNS/TLS chain,\" not a signed release artifact.\nWhat is handled well\nServer-to-server surfaces (migration-export, dns-sync, billing-api) are cleanly separated from user-facing JWT auth, use scoped/revocable API keys, and (for DNS Cluster specifically) enforce the Pro license check on both the pushing and receiving side deliberately, so one Pro license can't fan out free replication to unlimited receivers. Backup/restore and migration flows consistently use the task-tracker pattern rather than blocking connections open for long operations."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Domains",
+      "text": "/api/domains\nrequireHostingAccess on every route. Superadmin/admin see all domains; other users see only domains where parent === username.\nMethod & PathDescription\nGET /\nList domains (scoped per the rule above).\nGET /:domainName\nFull detail: domain + its Web config, Mmail config, DNS zone, and zone's records in one call.\nPOST /\nFull provisioning: creates the Domain + Web + Mmail rows, and — if DNS-managed — a full zone with default records (root domains) or a single A record under the parent zone (subdomains). Writes the real vhost/mail/DNS/PHP-FPM/webmail config to disk; sync failures are logged but non-fatal.\nPUT /:domainName\nUpdates arbitrary fields; optional nested webSettings: {phpMode, phpVersion, sslForce, autoIndex}. Rejects an uninstalled phpVersion with 400.\nDELETE /:domainName\nFull teardown of the domain and its associated system config.\nPOST /:domainName/suspend\nSwaps in a static \"Account Suspended\" vhost and reloads the web server.\nPOST /:domainName/unsuspend\nRestores the normal vhost.\nExample: create a domain\ncurl -X POST https://<your-server>:7777/api/domains \\\n-H \"Authorization: Bearer <TOKEN>\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n\"domainName\": \"example.com\",\n\"clientName\": \"acme_corp\",\n\"domainType\": \"virtual\"\n}'"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Web / Vhosts",
+      "text": "/api/web\nrequireHostingAccess on every route.\nMethod & PathDescription\nGET /\nQuery: domainName?, clientName?. Lists Web config rows.\nGET /:domainName\nSingle web config.\nPUT /:domainName\nUpdates config fields, rejects an uninstalled phpVersion, resyncs to disk. Fire-and-forget regenerates web stats immediately if statsEnabled was just turned on.\nPOST /:domainName/switch-server\nBody: serverType. Switches this one domain's backend (apache/nginx/etc.) and resyncs.\nGET / :domainName/vhost\nReads the live vhost file (auto-creates a default Web row first if none exists yet).\nPUT /:domainName/vhost\nBody: config (required), manualVhostEnabled?. Overwrites and resyncs the vhost. No syntax validation before reload — see Known Limitations.\nGET /:domainName/vhost-ssl\nReads the SSL vhost file.\nPUT /:domainName/vhost-ssl\nBody: config. Writes the SSL vhost directly via sudo cp + reload; marks the domain SSL-enabled.\nGET /:domainName/vhost-webmail\nReads (or generates a template for) the per-domain webmail vhost. Apache-only path, hardcoded.\nPUT /:domainName/vhost-webmail\nBody: config. Same write+reload pattern as vhost-ssl.\nPOST /:domainName/ssl/install\nBody: cert, key, ca?. Installs a commercial/custom certificate (raw PEM strings, no validation) and resyncs.\nPOST /:domainName/ssl/remove\nClears the SSL config back to none and resyncs.\nPOST /:domainName/ssl/letsencrypt\nConvenience wrapper around the full Let's Encrypt issuance flow, scoped to this domain. Gated only by requireHostingAccess, not requireAdmin — unlike calling /api/letsencrypt/issue directly.\nPOST /:domainName/ssl/renew\nConvenience wrapper around cert renewal, same auth note as above.\nPOST /:domainName/run-stats\nGenerates a GoAccess web-stats report from the domain's Apache access log right now (rather than waiting for the nightly cron). Returns a helpful 400 if the log doesn't exist/is empty yet.\nGET /:domainName/stats-report\nStreams the generated stats report HTML directly (not JSON).\nGET /webalizer-status\nWhether GoAccess is installed.\nPOST /webalizer-install\nInstalls GoAccess (EPEL on RHEL-family, main repo on Debian/Ubuntu) and sets up the daily stats cron.\nPOST /ssl/fix-all\nRuns the legacy fixssl --all shell helper if present on disk."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "DNS",
+      "text": "/api/dns\nrequireHostingAccess on every route. Manages BIND-backed DNS zones and records, plus optional DNS Cluster replication and master/slave conversion.\nZones\nMethod & PathDescription\nGET /zones\nList all zones.\nGET /zones/:domainName\nZone + all its records.\nPOST /zones\nBody: domainName (required), clientName?, serverType? (default bind). Creates the zone, writes it to BIND, fire-and-forget pushes to any DNS Cluster peers.\nDELETE /zones/:domainName\nRemoves all records + the zone row, deletes the BIND zone file/named.conf entry, fire-and-forget propagates the deletion to cluster peers.\nPUT /zones/:domainName/enable\nEnables DNS serving for the zone.\nPUT /zones/:domainName/disable\nDisables it.\nPOST /zones/:domainName/rebuild\nBody: ipAddress (required). Rebuilds the zone from its template.\nPOST /zones/:domainName/reset\nBody: ipAddress (required). Resets the zone to the default template.\nGET /zones/:domainName/validate\nChecks zone-file syntax.\nPOST /zones/:domainName/sync-slaves\nPushes to DNS Cluster peers (stamps clusterSyncedAt) and, if configured, also triggers legacy secondaryNs sync.\nPOST /zones/push-all-to-cluster\nPushes every master zone that's missing from any configured cluster member. Response: {success, pushed, message}.\nPOST /zones/:domainName/promote-to-master\nConverts a slave zone to master on this server.\nPOST /zones/:domainName/convert-to-slave\nBody: masterIp (required). Converts a master zone to a slave that AXFR-syncs from masterIp. Not pushed to the cluster — a slave has nothing authoritative to replicate.\nRecords\nMethod & PathDescription\nPOST /zones/:domainName/records\nBody: recordType, hostname, content (required), ttl? (default 3600), priority?/weight?/port? (default 0). Fire-and-forget cluster push.\nPUT /zones/:domainName/records/:recordId\nrecordId is the record's nname. Fire-and-forget cluster push.\nDELETE /zones/:domainName/records/:recordId\nRemoves the record, bumps the zone serial, resyncs, fire-and-forget cluster push.\nPOST /zones/:domainName/records/:recordId/clone\nBody: newHostname (required). Duplicates a record under a new hostname.\nAuto-generation helpers\nMethod & PathBodyDescription\nPOST /zones/:domainName/auto-spf\nmailServers?\nGenerates an SPF TXT record.\nPOST /zones/:domainName/auto-dmarc\npolicy? (none|quarantine|reject, default quarantine), pct? (1–100), ruaEmail?, rufEmail?\nGenerates a DMARC TXT record.\nPOST /zones/:domainName/auto-dkim\nselector? (default default)\nCreates a DKIM record placeholder — the actual keypair is generated by the Mail DKIM endpoint, not here.\nPOST /zones/:domainName/auto-mx\nmailServer (required), priority? (default 10)\nGenerates an MX record.\nPOST /zones/:domainName/auto-a-records\nipAddress (required)\nGenerates A records for common subdomains (www, mail, ftp, etc.).\nPUT /zones/:domainName/update-ip\nnewIp (required)\nBulk-updates every A record in the zone to a new IP in one call.\nTemplates\nMethod & PathDescription\nGET /templates\nQuery: clientName?. Lists built-in (default, minimal, email-centric) plus custom templates.\nPOST /templates\nBody: templateName, records (required), clientName?.\nPUT /templates/:templateName\nBuilt-ins are protected (403).\nDELETE /templates/:templateName\nBuilt-ins are protected (403).\nService control & server switch\nMethod & PathDescription\nGET /status\nActive DNS driver, whether BIND/named is running, zone/record counts.\nPOST /restart\nRestarts the DNS service.\nPOST /reload\nRe-renders every zone's config on disk.\nPOST /fix-dns\nBody: domainName?, sync?. Bumps serial(s) and re-syncs one zone or all zones; restarts the service if sync is true.\nPOST /switch-server\nBody: serverType. Switches the server-wide DNS backend driver (e.g. BIND → PowerDNS)."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "DNS Zone Import",
+      "text": "/api/dns-import\nrequireAdmin migration (Pro) on every route. SSHes into a remote Linux DNS server, discovers its BIND zones, and imports selected ones locally as additional authoritative/backup nameserver copies (starting as master, convertible to slave via the DNS module above).\nMethod & PathBodyDescription\nPOST /test\nhost, sshPassword (required), sshUser? (default root), sshPort? (default 22)\nVerifies SSH connectivity and BIND presence.\nPOST /discover\nsame connection fields\nParses the remote named.conf family to enumerate zones (excluding built-in BIND system zones), flagging which already exist locally.\nPOST /import\nconnection fields + zones (array, required, non-empty)\nFor each selected zone not already present locally: fetches and parses the remote zone file over SSH, creates a local master zone + records, syncs, fire-and-forget pushes to the cluster. Per-zone success/failure is reported in the response array rather than failing the whole request.\nExample\ncurl -X POST https://<your-server>:7777/api/dns-import/discover \\\n-H \"Authorization: Bearer <TOKEN>\" -H \"Content-Type: application/json\" \\\n-d '{\"host\":\"203.0.113.10\",\"sshUser\":\"root\",\"sshPassword\":\"…\"}'"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Mail",
+      "text": "/api/mail\nrequireHostingAccess on every route. Backed by qmail + vpopmail; falls back gracefully (DB-only) if vpopmail sync fails on any individual call.\nThe source tree also contains an older mail.ts file defining a similar-looking route set — it is never mounted (api.ts only wires up mail2.ts at this prefix) and can be ignored entirely; it's included here only so you don't confuse it with the live implementation below.\nServer status & control\nMethod & PathDescription\nGET /server/status\nqmail/vpopmail install state + live status of SMTP/send/Dovecot/SpamAssassin/ClamAV.\nPOST /server/start|stop|restart\nBody: service (required). Controls a named mail service (daemontools-aware for qmail).\nPOST /server/install\nInstalls the full qmail-toaster stack.\nGET / PUT /server/config\nReads/writes a qmail control-file setting. PUT body: key (required), value.\nQueue\nMethod & PathDescription\nGET /queue\nTotals + up to 100 enriched messages (size/subject).\nPOST /queue/flush\nForces immediate delivery attempts across the whole queue.\nGET /queue/:id/content\nid must be numeric. Raw message body.\nPOST /queue/:id/retry\nWakes qmail-send — affects all deferred mail, not just this message, despite the per-id path.\nDELETE /queue/:id\nDeletes one queued message.\nDomains\nMethod & PathDescription\nGET /domains\nBoth the panel's DB list and vpopmail's live domain list, for cross-checking.\nGET /domains/:domainName\nRich view: domain + accounts + catchall + forwards + mailing lists + DKIM status, in one call.\nPOST /domains\nBody: domainName (required), clientName?, password? (postmaster, default postmaster), catchallEmail?, spamFilter? (default true), virusScan? (default false). 409 if it already exists.\nDELETE /domains/:domainName\nCascades to all accounts/forwards/mailing lists, then best-effort removes the vpopmail domain.\nPOST /domains/:domainName/toggle\nBody: enable. Enables/disables the mail domain.\nAccounts\nMethod & PathDescription\nGET /accounts\nQuery: domainName?, clientName?.\nPOST /accounts\nBody: username, domainName, password (required), quota? (MB, default 100), smtpAccess?/imapAccess?/pop3Access? (default true), webmailAccess? (default false), clientName?. 409 if the account exists.\nPOST /accounts/import-from-vpopmail\nBody: domainName (required). Reverse-syncs from vpopmail's flat-file vpasswd, falling back to a direct MySQL query if the file backend is empty (supports both vpopmail storage modes). Imported accounts get a blank password.\nDELETE /accounts/:email\nDeletes the DB row + best-effort removes from vpopmail.\nPOST /accounts/:email/change-password\nBody: password (required).\nPOST /accounts/:email/quota\nBody: quota.\nPOST /accounts/:email/toggle\nBody: enable.\nCatch-all, forwarding, autoresponder, mailing lists\nMethod & PathDescription\nGET / POST /domains/:domainName/catchall DELETE\nGet/set/clear the domain's catch-all address (live vpopmail read/write, mirrored into the DB).\nGET /domains/:domainName/forwards\nLists live forwards.\nPOST /forwards\nBody: email, destination (required), keepCopy? (default true).\nDELETE /forwards/:email\nRemoves a forward.\nGET / POST /accounts/:email/autoresponder\nGet/set the vacation-responder message + enabled flag.\nGET /domains/:domainName/mailing-lists\nList ezmlm-style lists.\nPOST /domains/:domainName/mailing-lists\nBody: listName (required), adminEmail?.\nDELETE /domains/:domainName/mailing-lists/:listName\nRemoves a list.\nDKIM\nMethod & PathDescription\nPOST /domains/:domainName/dkim/generate\nGenerates a 1024-bit RSA keypair and writes the public key as a DNS TXT record in the panel's own DNS zone for the domain (removing any pre-existing one first).\nGET /domains/:domainName/dkim\nReads current DKIM status; self-heals by recreating the DNS TXT record if a key exists but the record went missing.\nPOST /domains/:domainName/dkim/sync-dns\nDespite the name, this only confirms DKIM is set up (400 if not) — it does not itself resync the DNS record; that self-healing happens inside the GET above.\nPOST /dkim/toggle\nBody: enable. Server-wide DKIM signing toggle (distinct from per-domain generation above).\nAnti-spam / anti-virus\nMethod & PathDescription\nGET /spam/config\nReads SpamAssassin's local.cf (enabled, global score, rewrite-subject).\nPOST /spam/score\nBody: score (required). Rewrites required_score and restarts SpamAssassin.\nPOST /spam/blacklist\nBody: entries (array, required). Replaces the server-wide sender blacklist.\nPOST /spam/whitelist\nBody: entries (array, required). Same for the whitelist.\nGET /clamav/config\nWhether the mail-pipeline ClamAV scanner is active.\nPOST /virus-scan/toggle\nBody: enable. Server-wide ClamAV toggle in the mail pipeline.\nSpamdyke (SMTP-time gateway)\nMethod & PathDescription\nGET /spamdyke/config\nFull parsed config: greet delay, max recipients, greylisting, rDNS checks, RBL servers, DKIM/virus-scan integration.\nPUT /spamdyke/config\nBody: the full settings object. Rewrites the config file.\nPOST /spamdyke/install\nInstalls spamdyke and wires it into qmail's SMTP invocation.\nPOST /spamdyke/toggle\nBody: enable.\nLogs & webmail status\nMethod & PathDescription\nGET /logs/:type\ntype: smtp|send (mapped internally). Query lines? (default 50).\nGET /webmail/status\nFilesystem-detected install state + URL for Roundcube/RainLoop/SquirrelMail.\nExample: create a mailbox\ncurl -X POST https://<your-server>:7777/api/mail/accounts \\\n-H \"Authorization: Bearer <TOKEN>\" -H \"Content-Type: application/json\" \\\n-d '{\"username\":\"sales\",\"domainName\":\"example.com\",\"password\":\"S3cure!Pass\",\"quota\":250}'"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Databases",
+      "text": "/api/databases\nrequireHostingAccess on every route.\nMethod & PathDescription\nGET /\nQuery: clientName?. Lists databases.\nPOST /\nBody: dbName (required), clientName? (default admin), charset? (default utf8mb4), collation?. Creates the record and the real MySQL database.\nDELETE /:dbName\nRemoves the panel record only — does not drop the MySQL database. See Known Limitations.\nGET /users\nQuery: clientName?. Lists DB users (password stripped).\nPOST /users\nBody: dbUserName, password (required), host? (default localhost), clientName?. Creates the record and the real MySQL user.\nPOST /users/:username/grant\nBody: dbName, privileges. Grants MySQL privileges. There is no DELETE for a DB user in this file — not exposed via this API surface.\nExample\ncurl -X POST https://<your-server>:7777/api/databases \\\n-H \"Authorization: Bearer <TOKEN>\" -H \"Content-Type: application/json\" \\\n-d '{\"dbName\":\"shop_orders\",\"clientName\":\"acme_corp\"}'"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "FTP",
+      "text": "/api/ftp\nrequireHostingAccess on every route.\nMethod & PathDescription\nGET /\nQuery: domainName?, clientName?. Lists FTP users (password stripped).\nPOST /\nBody: username, password (required), domainName?, homedir?, quota? (default 0), clientName?. clientName/homedir auto-resolved from the domain if not given.\nDELETE /:username\nRemoves the panel record only — same \"DB-only delete\" caveat as Databases above.\nPOST /:username/change-password\nBody: password."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "SSL Certificates",
+      "text": "/api/ssl\nNo authorization middleware at all on this router — any authenticated user can install a certificate for any domain name string, with no ownership check. See Known Limitations.\nMethod & PathDescription\nGET /\nLists certificates (private key stripped, daysRemaining computed).\nGET /:domainName\nSingle certificate lookup.\nPOST /\nBody: domainName (required), certType? (selfsigned triggers the self-signed branch; otherwise commercial, requiring certificate+privateKey). The self-signed branch does not sync to any web server — it only saves the cert to disk/DB. The commercial branch does sync.\nDELETE /:domainName\nRemoves the panel record only — no on-disk cleanup, no vhost SSL config change.\nPOST /self-signed\nBody: domainName. A near-duplicate of the self-signed branch of POST / above — redundant, kept for backward compatibility."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Let's Encrypt",
+      "text": "/api/letsencrypt\nReads (GET /certificates, GET /status) require no more than a session; every mutating route below is individually requireAdmin.\nMethod & PathDescription\nGET /certificates\nLists certificates: domainName, validTo, issuer, autoRenew.\nGET /status\nWhether acme.sh is installed.\nPOST /install\nInstalls acme.sh.\nPOST /issue\nBody: domainName (required), email?, keyBits?, additionalDomains? (string array). Auto-detects existing subdomains from the domain's own DNS zone and merges them into one combined SAN request; installs the cert into the active web server and sets up auto-renewal.\nPOST /renew\nBody: domainName (required).\nPOST /revoke\nBody: domainName (required).\nweb.ts's POST /:domainName/ssl/letsencrypt//ssl/renew are thin, domain-scoped wrappers around this exact same service — but sit behind requireHostingAccess only, not requireAdmin. Two paths to the same action, different authorization requirements.\nExample: issue a certificate\ncurl -X POST https://<your-server>:7777/api/letsencrypt/issue \\\n-H \"Authorization: Bearer <TOKEN>\" -H \"Content-Type: application/json\" \\\n-d '{\"domainName\":\"example.com\",\"email\":\"admin@example.com\"}'"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "System",
+      "text": "/api/system\nThe largest single module — server metrics, service control, cron, self-update, and more. Auth varies per route; most read-only metrics endpoints require no more than a session, while anything that changes server state is requireAdmin. See the per-table notes.\nBackground task polling\nMethod & PathAuthDescription\nGET /tasks\nsession\nQuery: type?, status?. Lists in-memory background tasks (backups, restores, migrations, self-update...). Not persisted — a panel restart clears the list.\nGET /tasks/:id\nsession\nThe canonical polling endpoint referenced throughout this reference — see Conventions.\nDELETE /tasks/:id\nadmin\nSoft-deletes a task; refuses (400) while it's still running.\nPOST /tasks/cleanup\nadmin\nPrunes old completed/failed tasks.\nSystem info & metrics\nMethod & PathDescription\nGET /info\nOS-level snapshot (hostname, uptime, platform, CPU/memory counts, network interfaces).\nGET /sysinfo\nRicher dashboard payload — OS name, kernel, CPU model, formatted memory/swap/disk usage with percentages.\nGET /cpu-sample\nInstantaneous CPU% via two /proc/stat reads 250ms apart — intended to be polled for a live graph.\nGET /disk\nParsed df -h output.\nGET /memory\nParsed free -m output.\nGET /processes\nTop 20 processes by memory (ps aux --sort=-%mem). Not admin-gated — any logged-in user can see the full process list, including other users' running commands.\nGET /version\nJust { version }.\nServices & drivers\nMethod & PathAuthDescription\nGET /services\nsession\nInstall/running status of every registered service driver.\nPOST /services/restart\nadmin\nBody: serviceType, driverName.\nPOST /services/switch\nadmin\nBody: serviceType, driverName. Changes the default driver implementation for a service type; does not migrate data itself.\nGET /drivers\nsession\nLists all registered driver definitions.\nSettings, hostname, and web server backend\nMethod & PathAuthDescription\nGET /settings\nsession\nReturns the entire GlobalState settings blob, unredacted.\nPUT /settings\nadmin\nMerges the whole body into settings — no whitelist/schema.\nPOST /hostname\nadmin\nBody: hostname (required, FQDN). Changes the OS hostname, qmail's identity files, restarts mail services. Does not touch DNS A/PTR records — you must update those with your upstream provider separately.\nPOST /webserver\nadmin\nBody: target (apache|nginx). Full backend cutover: installs the target if needed, migrates every domain's vhost + SSL + webmail vhost, restarts. Non-fatal per-domain errors are collected in the response rather than aborting.\nFix scripts\nrequireAdmin. POST /fix-script, body { script }. Each name below performs a real corrective action:\nfixweb\nRebuild every vhost + restart web server.\nfixdns\nRebuild every zone file + restart DNS server.\nfixmail\nRe-sync every mail domain into qmail/vpopmail + restart.\nfixftp\nRestart the FTP server (no rebuild needed — MySQL-backed auth).\nfixssl\nRebuild the SSL vhost block for every domain with a cert.\nfixphpini\nRebuild every PHP-FPM pool config.\nfixchownchmod\nFix ownership/permissions across every client's domains.\nfixservice\nRestart any managed service that's currently down.\nrestart-all\nRestart every managed service.\nfix-mail-database\nRepair vpopmail/panel MySQL users, grants, and auth config.\nfix-firewall\nReopen every port SysAdminHCP needs.\nfix-acme-challenge\nRecreate the Let's Encrypt HTTP-01 challenge directory + Apache alias.\nfix-webmail\nRecreate webmail PHP-FPM pool(s) + every domain's webmail vhost.\nfix-selinux-apparmor\nReapply SELinux booleans (RHEL) or the AppArmor override (Ubuntu).\nLogs\nGET /logs/:type — session only (not admin-gated, including the secure auth log). Query lines? (default 50). Valid type values: sysadminhcp, sysadminhcp_error, sysadminhcp_update, httpd/apache, nginx, mail, qmail, mysql, system, secure, ftp.\nBackup / restore (legacy — see also Backups)\nrequireAdmin. This is a separate, simpler implementation from the primary /api/backups module — synchronous (blocks the request up to 10 minutes), stores to /backup/sysadminhcp rather than /var/backup/sysadminhcp, and has no upload/retrieve/schedule support. The dedicated /api/backups module is what the UI actually uses.\nMethod & PathBodyDescription\nPOST /backup\ntype, target, destination, includeMail\ntype='full': all-databases dump + panel data + /home + /opt/configs (+ mailnames if includeMail). 'domain'/'client': narrower tar of just that target.\nPOST /restore\nfile, type\nExtracts and restores from a prior backup of this format.\nFirewall (embedded copy)\nThis is one of three independent firewall surfaces in the API — see Known Limitations before relying on any single one as the source of truth.\nMethod & PathAuthDescription\nGET /firewall/status\nsession\n{ firewalld, csfInstalled, status }.\nPOST /firewall/block\nadmin\nBody: ip, reason. Prefers CSF, falls back to firewalld; DB-tracked via a BlockedIp row.\nPOST /firewall/unblock\nadmin\nBody: ip.\nPOST /firewall/allow\nadmin\nBody: ip, description.\nPOST /firewall/disallow\nadmin\nBody: ip.\nGET /firewall/blocked\nsession\nReturns the DB-tracked list — not the live firewall ruleset.\nGET /firewall/allowed\nsession\nSame, for allowed IPs.\nResource Plans (duplicate surface)\nrequireAdmin on mutations, session-only on GET. Same underlying table as the dedicated Resource Plans module, but this version accepts arbitrary body fields with no whitelist (repo.create(req.body)/Object.assign) — prefer the dedicated module unless you specifically need that.\nGET /resource-plans\nPOST /resource-plans\nPUT /resource-plans/:name\nDELETE /resource-plans/:name\nCron\nMethod & PathAuthDescription\nGET /cron\nsession\nMerges 3 sources: the panel service account's own crontab (editable), /etc/cron.d/* (read-only), and /etc/cron.{hourly,daily,weekly,monthly}/* (read-only).\nPOST /cron\nadmin\nBody: schedule, command, comment. Appends to the user crontab.\nPUT /cron/:id\nadmin\nid is a positional index into the crontab at read time — not stable if the crontab changes between your GET and this call.\nDELETE /cron/:id\nadmin\nSame positional-index caveat.\nPOST /cron/install-required\nadmin\nInstalls any missing panel-required cron jobs (idempotent).\nIP address management & Switch Host IP\nMethod & PathAuthDescription\nGET /ipaddresses\nsession\nOS network interfaces merged with saved per-IP mode config.\nPOST /ipaddresses/reread\nadmin\nRe-scans OS interfaces.\nPUT /ipaddresses/:ip/config\nadmin\nBody: mode (shared|dedicated), domain.\nGET /switch-ip/preview\nadmin\nQuery: oldIp (required). Read-only blast-radius report before committing a real switch — DNS record count, Web row count, whether an IP-mode entry exists.\nPOST /switch-ip\nadmin\nBody: oldIp, newIp (required). Bulk data-level rewrite: every matching DNS A record, zone resync + reload, fire-and-forget cluster push, Web.ipaddress, re-keyed IP-mode map, best-effort license revalidation. Does not touch the OS network interface — that's a manual step you still need to do.\nExample: preview then commit an IP switch\ncurl \"https://<your-server>:7777/api/system/switch-ip/preview?oldIp=203.0.113.10\" \\\n-H \"Authorization: Bearer <TOKEN>\"\ncurl -X POST https://<your-server>:7777/api/system/switch-ip \\\n-H \"Authorization: Bearer <TOKEN>\" -H \"Content-Type: application/json\" \\\n-d '{\"oldIp\":\"203.0.113.10\",\"newIp\":\"203.0.113.20\"}'\nMySQL root password\nMethod & PathDescription\nGET /mysql/password\nadmin. Only reports whether a password is saved — never the value.\nPOST /mysql/password\nadmin. Body: currentPassword?, newPassword (≥6 chars). Verifies the current password before changing it.\nRevision & deploy history\nMethod & PathDescription\nGET /revision\nCurrently-installed version + deploy metadata. managed:false on a dev-mode install with no revision file.\nGET /deploy-history\nArray of past deployments (only populated on installs actually managed via the release pipeline).\nSelf-update\nMethod & PathAuthDescription\nGET /update-check\nsession\nCompares the installed version against GitHub's published VERSION file. Prefers a same-day cached result over a live fetch. selfUpdateAvailable reflects whether this install is a compiled binary (as opposed to a dev-mode source checkout).\nPOST /self-update\nadmin\nOnly works on compiled-binary installs (400 otherwise). Runs the official installer script as root inside a dedicated systemd-run unit so it survives the panel's own restart partway through. Fire-and-forget — a successful response means the update started, not that it finished. Progress logs to /var/log/sysadminhcp/self-update.log.\nGET /update-check/schedule\nadmin\nWhether the opt-in daily update-check cron is installed.\nPOST /update-check/schedule\nadmin\nBody: enabled. Installs/removes the daily cron — verification only, it never auto-installs an update itself.\nExample: trigger a self-update\ncurl -X POST https://<your-server>:7777/api/system/self-update \\\n-H \"Authorization: Bearer <TOKEN>\"\n# { \"started\": true, \"logFile\": \"/var/log/sysadminhcp/self-update.log\", \"unitName\": \"sysadminhcp-selfupdate-…\" }"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Security",
+      "text": "/api/security\nrequireAdmin on the entire router — the most consistently gated of the security-adjacent modules.\nSSH config\nMethod & PathDescription\nGET /ssh/config\nParsed effective config: port, permitRootLogin, passwordAuthentication, pubkeyAuthentication, maxAuthTries, allowUsers, denyUsers, clientAliveInterval, clientAliveCountMax.\nPUT /ssh/config\nBody: any subset of the above. Writes only to a dedicated override file (never the package-managed main config), validates with sshd -t before applying, and auto-reverts on validation failure. Reloads sshd on success — existing sessions aren't dropped, but a bad port value means you lose SSH access on the next connection attempt even though validation passed syntax-check.\nPOST /ssh/restart\nHard restart (not reload) — briefly drops existing connections.\nClamAV\nMethod & PathDescription\nGET /clamav/status\nInstall/active state, version, signature age, and current scan status.\nPOST /clamav/install\nInstalls ClamAV + enables signature auto-update.\nPOST /clamav/update\nRuns freshclam.\nPOST /clamav/scan\nBody: path? (default /home, validated against a safe-character regex). Fire-and-forget async scan; refuses if one is already running.\nGET /clamav/scan/result\nPoll for the running/most recent scan's result.\nFail2ban\nMethod & PathDescription\nGET /fail2ban/status\nInstall state + jail count + total-banned count.\nPOST /fail2ban/install\nInstalls and starts the service.\nGET /fail2ban/jails\nPer-jail detail including currently-banned IP list.\nPOST /fail2ban/unban\nBody: jail, ip.\nPOST /fail2ban/restart\nBlocked / whitelisted IPs (firewalld zones only)\nNo CSF awareness at all here — on a CSF-managed box these silently do nothing useful. Also note ip is interpolated into the firewalld command with no format validation.\nGET /blocked-ips\nPOST /blocked-ips\nDELETE /blocked-ips/:ip\nGET /whitelist\nPOST /whitelist\nDELETE /whitelist/:ip"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Firewall",
+      "text": "/api/firewall\nNo requireAdmin anywhere in this file. Any authenticated user — including the lowest-privilege customer login — can add/remove firewall rules, block/allow arbitrary IPs, and restart the firewall. See Known Limitations for the command-injection concern in the same routes.\nMethod & PathBodyDescription\nGET /rules\n—\nParses firewall-cmd --list-all (or falls back to iptables -L) into rule objects.\nPOST /rules\nport (required), protocol? (default tcp), source?, action? (allow/other)\nAdds or removes a port rule.\nDELETE /rules/:id\n—\nParses id's port-/svc- prefix to know what to remove.\nPOST /blocked\nip (required)\nDrop-zone block.\nPOST /allowed\nip (required)\nTrusted-zone allow.\nPOST /restart\n—\nReloads the firewall."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Backups",
+      "text": "/api/backups\nNo requireAdmin anywhere — every route, including full-system restore, is reachable by any authenticated user. The SysAdminHCP-format restore path extracts an uploaded/retrieved archive directly onto / as root; treat this entire module as admin-only in front of whatever authorization layer you add.\nList / create / delete\nMethod & PathDescription\nGET /\nLists backup archives, auto-detecting format (KloxoNG / cPanel / SysAdminHCP) per file.\nPOST /\nBody: backupType? (default full), target?, destination? (local or remote), includeMail?, plus remote-destination fields (destHost, destPort, destUser, destPass, destPath). Async, task-tracked; uploads to the remote destination after the local tar completes if requested.\nDELETE /:name\nname is not sanitized against path traversal here the way fileManager.ts sanitizes its inputs.\nRestore (auto-detects format)\nPOST /:name/restore — dispatches to a KloxoNG-specific, cPanel-specific, or SysAdminHCP-format restore based on file detection. All three are async/task-tracked. The SysAdminHCP-format branch restarts the panel itself at the end via a detached setsid shell so the restart doesn't kill the restore script mid-flight.\nSchedule\nGET /schedule\nPUT /schedule\nBody: frequency (daily|weekly|monthly), time (HH:MM), retention (days).\nUpload / retrieve\nMethod & PathDescription\nPOST /upload\nMultipart field backup.\nPOST /retrieve\nBody: source (sftp|ftp), host, port, user, pass, path?, filename (required). Pulls a remote backup down onto the server.\nFormat-specific helpers\nMethod & PathDescription\nGET /:name/format\nDetected format + compatibility flag.\nGET /:name/contents\nKloxoNG-format only — lists the archive's account contents without restoring.\nPOST /:name/restore-kloxong\nFull option control (accounts, skipExisting, restoreDns/Mail/Databases/Ssl/Ftp).\nPOST /upload-kloxong\nMultipart field backup.\nPOST /upload-cpanel\nMultipart field backup (a cPanel pkgacct archive).\nGET /:name/analyze-cpanel\nAccount/DB/email/DNS summary without restoring.\nPOST /:name/restore-cpanel\nBody: restoreDns/Mail/Databases/Files, skipExisting.\nExample: create a full backup and poll it\ncurl -X POST https://<your-server>:7777/api/backups \\\n-H \"Authorization: Bearer <TOKEN>\" -H \"Content-Type: application/json\" \\\n-d '{\"backupType\":\"full\",\"includeMail\":true}'\n# { \"success\": true, \"filename\": \"...\", \"taskId\": \"...\" }\ncurl https://<your-server>:7777/api/system/tasks/<taskId> \\\n-H \"Authorization: Bearer <TOKEN>\""
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "File Manager",
+      "text": "/api/files\nNo requireAdmin anywhere — scoping is enforced internally instead. Admin/sysadminhcp users can reach /home, /var/www, the panel's own httpdocs, /opt/configs, panel logs, and /tmp. Every other user is hard-confined to their own /home/<username> tree regardless of path given. Path traversal (.. anywhere in the resolved path) is explicitly rejected.\nMethod & PathParams/BodyDescription\nGET /list\nquery path?, showHidden?\nDirectory listing with type/size/perms/owner/mtime.\nGET /file\nquery path (required)\nReads a file's content + MIME type.\nPUT /file\npath, content\nOverwrites file content.\nPOST /mkdir\npath, name\nCreates a directory.\nPOST /touch\npath, name, content?\nCreates a new file.\nDELETE /\nquery path (required)\nDeletes one file/dir.\nPOST /delete-bulk\npaths[]\nBest-effort per-path; reports successes/errors separately.\nPOST /rename\npath, newName\nPOST /move\npaths[], destDir\nPOST /copy\npaths[], destDir\nPOST /chmod\npath, permissions, recursive?\nExplicitly documented as available to any user, scoped to their own home.\nPOST /compress\npaths[], parentDir, name, format? (targz or zip)\nPOST /extract\npath, destDir\nPOST /upload\nmultipart files[] (up to 50, 200MB each), field destDir\nPer-file failures don't abort the batch.\nGET /download\nquery path or paths (JSON array)\nMultiple paths, or a single directory, are always zipped on the fly.\nGET /du\nquery path?\nRecursive disk-usage total (no depth/size cap — can be slow on very large trees)."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "PHP-FPM",
+      "text": "/api/php-fpm\nMixed auth: pool/version/module mutation routes are requireAdmin; several read-only routes are not (and inconsistently so — see the note at the end).\nPool management\nMethod & PathAuthDescription\nGET /status\nsession\nOverall PHP-FPM service status.\nGET /pools\nsession\nLists all configured pools.\nGET /pools/:poolName\nsession\nSingle pool.\nPOST /pools\nadmin\nBody: poolName, user (required) + many optional tuning fields (pmStyle, maxChildren, memoryLimit, openBasedir, etc).\nPUT /pools/:poolName\nadmin\nSame shape as create.\nDELETE /pools/:poolName\nadmin\nSelectable versions (domain-creation dropdown)\nMethod & PathAuthDescription\nGET /versions\nsession\nThe effective selectable list — configured list if set, else auto-detected installed versions.\nPOST /versions\nadmin\nBody: version (x.y). Adds to the selectable list — does not install it (see below for that).\nDELETE /versions/:version\nadmin\n400 if it would leave zero versions selectable.\nVersion install/remove (system package level)\nMethod & PathDescription\nGET /php-versions/status\nPer-version install state/source (system, Remi, ondrej PPA) for the 6 known versions (7.4–8.4).\nPOST /php-versions/install-remi\nInstalls the Remi (EL) or ondrej PPA (Debian) multi-version repo.\nPOST /php-versions/:version/install\nInstalls an actual PHP version's packages, enables its FPM service, auto-adds it to the selectable list.\nDELETE /php-versions/:version\n400 if it's the protected system PHP.\nModule (extension) management\nMethod & PathDescription\nGET /modules/:version\nLoaded modules + installed packages for that version.\nGET /modules/:version/search\nQuery q. Searches available packages.\nPOST /modules/:version\nBody: module?, packageName? (at least one).\nDELETE /modules/:version/:module\nAll routes in this last block require admin, including the read-only ones — inconsistent with GET /pools//versions above, which don't."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Clients",
+      "text": "/api/clients\nRead this before using this module\nPUT /:username, POST /:username/suspend, /unsuspend, and /change-password have no admin check and no ownership check. Any authenticated user can act on any other username. Do not expose these four routes without your own authorization layer in front of them.\nMethod & PathAuth (as shipped)Description\nGET /\nsession\nQuery: loginType?, parent?, status?. Password stripped from results.\nGET /:username\nsession\nSingle client, password stripped.\nPOST /\nadmin\nBody: username, password, email, loginType, parent?, plus arbitrary options.\nPUT /:username\nnone\nArbitrary body fields merged onto the client (except nname/password, which are stripped from the payload). If resourcePlanName is in the body, that plan's limits override anything else supplied in the same request.\nGET /:username/delete-summary\nadmin\nPre-delete impact report for a confirmation dialog.\nDELETE /:username\nadmin\nFull teardown — client and every associated resource.\nPOST /:username/suspend\nnone\nPOST /:username/unsuspend\nnone\nPOST /:username/change-password\nnone\nBody: newPassword. No current-password check either.\nGET /:username/subclients\nsession\nReseller's sub-accounts (parent === username)."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Resource Plans",
+      "text": "/api/resource-plans\nNo requireAdmin here either — full CRUD is reachable by any authenticated user. This is the dedicated surface for the ResourcePlan entity, with named-field defaults and duplicate-name protection (contrast with the cruder duplicate at /api/system/resource-plans, described above).\nMethod & PathBodyDescription\nGET /\n—\nLists plans; returns an empty list gracefully if the table doesn't exist yet.\nGET /:name\n—\nPOST /\nname (required), description?, domainLimit? (default 5), diskLimit? (default 1000), bandwidthLimit? (default 5000), mailAccountLimit? (default 10), ftpAccountLimit? (default 5), databaseLimit? (default 5)\n409 on duplicate name. Note: ftpAccountLimit in the request maps to the ftpLimit column internally.\nPUT /:name\nany subset of the fields above\nPartial update — only fields present in the body are changed.\nDELETE /:name\n—\nDeleting a plan does not appear to cascade-clean any client rows still referencing it by name."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Client Self-Service",
+      "text": "/api/client\nThe API a domain-owner/reseller's own dashboard calls — everything here scopes to resources the logged-in client owns. Every route implements its own privilege-flag check (see Roles & Permissions) plus a manual ownership check comparing the resource's clientName/parent to the caller — admins bypass the ownership check but not the privilege-flag check.\nDashboard\nGET /dashboard — resource counts plus live-computed disk usage (du -sb over the client's home + mail directories) and bandwidth (parsed from Apache access logs). Response: { client, privileges, usage: {disk, bandwidth, domains, subdomains, mailAccounts, ftpAccounts, databases}, counts }.\nDomains & subdomains\nMethod & PathPrivilegeDescription\nGET /domains\ndomain_flag\nOwn domains only.\nPOST /domains\ndomain_add_flag\nBody: domainName (required) + options. Enforces the account's domain-count limit.\nDELETE /domains/:domainName\ndomain_delete_flag\nOwnership verified.\nGET /domains/:domainName/stats-report\n—\nStreams the raw stats HTML; 404 page if not generated yet.\nGET / PUT /domains/:domainName/vhost\ndomain_flag\nManual vhost editor — same \"no syntax validation before reload\" caveat as the admin version.\nGET / PUT /domains/:domainName/vhost-ssl\ndomain_flag\nRaw SSL vhost editor — lets a client hand-edit SSL config directly, a meaningful trust boundary if you expose this to end customers.\nGET / PUT /domains/:domainName/vhost-webmail\ndomain_flag\nApache-only, hardcoded path (no multi-webserver support here).\nGET /subdomains\ndomain_flag\nPOST /subdomains\ndomain_add_flag\nBody: subdomainName, parentDomain (required) + options. Verifies parent-domain ownership.\nMail\nMethod & PathPrivilegeDescription\nGET /mail/domains\nmail_flag\nGET /mail/accounts\nmail_flag\nPassword stripped.\nPOST /mail/accounts\nmail_add_flag\nBody: email (or local+domainName), password (required), quota?. Enforces mailbox-count limit. vpopmail sync failures are logged, not fatal.\nPUT /mail/accounts/:email/password\nmail_password_flag\nDELETE /mail/accounts/:email\nmail_delete_flag\nGET /mail/forwards\nmail_flag\nPOST /mail/forwards\nmail_add_flag\nBody: source, destination (required). No domain-ownership check here, unlike most other mail routes in this module.\nDELETE /mail/forwards/:name\nmail_delete_flag\nDNS\nMethod & PathPrivilegeDescription\nGET /dns/zones\ndns_flag\nGET /dns/zones/:domainName/records\ndns_flag\nPOST /dns/zones/:domainName/records\ndns_add_flag\nBody: hostname, type, content (required), ttl?, priority?. Writes directly via the record repo, without the zone-resync step the PUT below performs.\nPUT /dns/zones/:domainName/records/:recordId\ndns_flag\nDelegates to the same service method the admin DNS module uses — properly resyncs.\nDELETE /dns/zones/:domainName/records/:recordId\ndns_delete_flag\nPlain repo remove — no explicit resync call, inconsistent with PUT above.\nPUT /dns/zones/:domainName/update-ip\ndns_flag\nBody: newIp (required). Bulk A-record update.\nFTP\nMethod & PathPrivilegeDescription\nGET /ftp\nftp_flag\nPOST /ftp\nftp_add_flag\nEnforces the FTP-account limit.\nPUT /ftp/:username/password\nftp_password_flag\nOnly updates the DB row — no call into the FTP driver to actually change the live password. Likely incomplete.\nDELETE /ftp/:username\nftp_delete_flag\nSame gap — no live system removal.\nDatabases\nMethod & PathPrivilegeDescription\nGET /databases\ndatabase_flag\nReturns both databases and DB users.\nPOST /databases\ndatabase_add_flag\nBody: dbName (required), dbUserName?, dbPassword?. Also always grants the client's existing main DB user access to the new database (so a single phpMyAdmin-SSO identity can see everything they own).\nDELETE /databases/:dbName\ndatabase_delete_flag\nUses a bare mysql -u root call for the drop — may fail silently depending on local MySQL auth config.\nPUT /databases/:dbName/password\ndatabase_password_flag\nSame bare-mysql caveat.\nPOST /db-users\ndatabase_add_flag\nBody: dbUserName, password (required).\nDELETE /db-users/:userName\ndatabase_delete_flag\nPUT /db-users/:userName/password\ndatabase_password_flag\nPUT /db-users/:userName/privileges\ndatabase_add_flag\nBody: dbName (required), privileges?, revoke?.\nSSL / Let's Encrypt\nMethod & PathPrivilegeDescription\nGET /ssl\nssl_flag\nAlso picks up admin-issued certs matched by domain name where clientName was left blank, backfilling ownership as a side effect.\nPOST /ssl/letsencrypt\nssl_add_flag\nBody: domainName (required), email?. Full self-service Let's Encrypt issuance scoped to an owned domain.\nPHP version\nMethod & PathDescription\nGET /php-versions\nRead-only, informational, no privilege gate.\nPUT /domains/:domainName/php-version\ndomain_flag + ownership. Body: phpVersion (required). Rejects a version outside the admin-configured allowlist.\nBackup & restore (client self-service)\nComponents: files, settings, emails, ssl, databases, ftp, dns, apache, webmail (note: ftp is listed but not actually implemented as its own block — FTP users are folded into the settings component). All require backup_flag and are async/task-tracked.\nMethod & PathDescription\nGET /backups\nLists the client's own archives.\nGET /backups/task/:taskId\nPoll an in-progress backup/restore.\nPOST /backups/create\nBody: components? (array, default all). Includes plaintext mail/DB/FTP passwords in the exported JSON — only SSL private keys are stripped from the export.\nDELETE /backups/:filename\nGET /backups/:filename/download\nStreams the file; works from a plain window.open() since it uses the normal session/JWT.\nPOST /backups/:filename/restore\nBody: skipExisting?. Rejects non-client-format manifests (400) but does not verify the manifest's own recorded username matches the caller — restoring another client's exported archive is possible if you can get the file into your own backup directory. Restored SSL certs are force-reassigned to the calling client regardless of the manifest's data, mitigating that specific case.\nAccount settings & two-factor authentication\nMethod & PathDescription\nGET /account\nProfile fields.\nPUT /account\nBody: any of email, realname, phone, address, city, state, zip, country, language, skin.\nPUT /account/password\nBody: currentPassword, newPassword (required).\nPOST /account/2fa/setup\nGenerates a TOTP secret + QR code. Not persisted until /confirm succeeds.\nPOST /account/2fa/confirm\nBody: secret, code (required). Verifies the first live code, enables 2FA, returns one-time backup codes.\nPOST /account/2fa/disable\nBody: password (required).\nExample: enroll in two-factor auth\ncurl -X POST https://<your-server>:7777/api/client/account/2fa/setup \\\n-H \"Authorization: Bearer <TOKEN>\"\n# { \"success\": true, \"secret\": \"...\", \"qrCodeUrl\": \"...\" }\ncurl -X POST https://<your-server>:7777/api/client/account/2fa/confirm \\\n-H \"Authorization: Bearer <TOKEN>\" -H \"Content-Type: application/json\" \\\n-d '{\"secret\":\"…\",\"code\":\"123456\"}'\n# { \"success\": true, \"backupCodes\": [\"…\", \"…\", …] }\nWebmail access\nGET /webmail-url\nPer-domain webmail URLs the client owns.\nPOST /domains/:domainName/webmail-client\nBody: clientType (roundcube|rainloop, required). Ownership re-verified without the usual admin bypass.\nAI Spam Filter — client-scoped whitelist/blacklist/stats\nThese duplicate the file-rewrite logic in the admin Spam Filter module inline rather than sharing a helper — keep both in sync if you ever patch one.\nGET / POST / DELETE /spam-whitelist(/:id)\nGlobal-scope entries are hidden from clients; only domain/user-scope entries they own.\nGET / POST / DELETE /spam-blacklist(/:id)\nMirrors the whitelist routes exactly.\nGET /spam-stats\nSpam/ham counts and token usage for domains that have the AI filter enabled."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Webmail",
+      "text": "/api/webmail\nrequireHostingAccess only — no admin gate on any individual route, even though these control the panel's global webmail client install/config. Treat this router as admin-only in your own integration.\nMethod & PathDescription\nGET /status\nInstalled clients/versions + the active config (DB → filesystem detection → none).\nGET /config\nActive configuration; auto-detects from the filesystem if no DB row exists yet (without persisting anything).\nPUT /config\nBody: a large whitelist of Roundcube/RainLoop-specific fields (IMAP/SMTP host/port, language, theme, plugin toggles, etc). Pushes select fields live into the installed client's own config, not just the DB.\nPOST /install/roundcube\nPOST /install/rainloop\nPOST /uninstall/:clientType\nclientType: roundcube|rainloop.\nPOST /switch\nBody: clientType (required). Switches the server-wide active webmail client.\nPOST /domain/:domainName/enable\nBody: clientType? (auto-detected if omitted). Creates the domain's webmail vhost and RainLoop domain config.\nPOST /domain/:domainName/disable\nGET /domains\nAll domains with webmail currently enabled.\nPOST /rebuild\nRegenerates every enabled domain's webmail vhost plus the global one — the \"fix script\" equivalent for webmail."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "phpMyAdmin SSO",
+      "text": "/api/phpmyadmin\nrequireHostingAccess; install/uninstall/client-access-toggle routes additionally require admin. Issues short-lived, single-use SSO tokens so a client can open phpMyAdmin without re-entering MySQL credentials.\nMethod & PathAuthDescription\nGET /status\nsession\nInstall state, version, and per-client access toggles.\nPOST /install\nadmin\nDELETE /uninstall\nadmin\nPUT /clients/:clientName\nadmin\nBody: enabled (required). Per-client access toggle.\nPUT /clients-bulk\nadmin\nBody: clients: [{clientName, enabled}].\nPOST /sso\nsession\nBody: dbName? (opens directly to that database if given). Admins get root credentials; clients get (or auto-create) their own DB user. Verifies the resolved credentials actually work before issuing a token. Returns {token, signonUrl, mysqlUser, isAdmin} — the token is single-use with a 60-second TTL, consumed by a separate PHP signon script, not by the SPA directly.\nGET /sso-validate\nsession\nCalled by the signon script to redeem the one-time token.\nGET /client-access\nsession\n{installed, hasAccess, isAdmin, url} — used to decide whether to show a phpMyAdmin button at all."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Email Stats",
+      "text": "/api/email-stats\nrequireHostingAccess; most routes additionally require admin. Two routes (POST /record, GET /rate-check) don't, and are really meant to be called by the internal qmail-queue wrapper script rather than the SPA — they still require a valid session/JWT like everything else under /api.\nMethod & PathDescription\nGET /\nToday's summary across all domains.\nGET /daily\nQuery: domain?, start?, end?. Each row annotated with whether the domain is hosted here and/or blacklisted.\nGET /monthly\nQuery: domain?, year?, month?.\nPOST /record\nBody: domain (required), clientName?. Records one outbound send — called once per message by the mail pipeline.\nGET /rate-check\nQuery: domain (required). Used by the mail pipeline to decide whether to throttle a send.\nPOST /:domain/scan\nFire-and-forget manual ClamAV scan of a domain's mail.\nGET /:domain/scan-status\nPUT /:domain/outbound-scan\nBody: enabled (required).\nPOST /rebuild-rate-limits\nRewrites the mail wrapper's rate-limit config from current data.\nGET /:domain/config\nEffective rate limit, current throttle status, this-hour send count, and (if the client has a resource plan) its auto-scan threshold.\nPUT /:domain/rate-limit\nBody: emailRateLimit (required, ≥0).\nGET /sender-blacklist\nPOST /sender-blacklist\nBody: domain (required), reason?. This is a sender-side blacklist (blocks mail claiming to be from these domains) — distinct from the AI Spam Filter's recipient-facing lists.\nDELETE /sender-blacklist/:domain"
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "AI Spam Filter",
+      "text": "/api/spam-filter\nGated only by requireLicenseFeature('ai-spam-filter') — no role check anywhere in this file. Any authenticated user, once the Pro add-on is licensed, can read/modify global provider config (including masked-but-updatable API keys), install/uninstall the filter, and manage any domain's or account's filtering settings, whitelist, or blacklist. The client-scoped equivalents in Client Self-Service do enforce ownership — this admin surface does not enforce role at all.\nConfiguration & install\nMethod & PathDescription\nGET /config\nProvider API keys returned masked (••••••••) if set.\nPUT /config\nBody: provider/model/threshold/timeout settings + the 4 provider API keys (Ollama, OpenAI, Anthropic, Gemini) — a submitted key is only applied if it doesn't start with •, so the masked GET response round-trips safely.\nGET /status\nInstall state + PHP availability.\nPOST /install\nPrerequisite checks (vpopmail, vdelivermail, PHP, deploy bundle) before proceeding.\nPOST /test-provider\nRuns a live connectivity test against the configured AI provider.\nDomain & account enablement\nMethod & PathDescription\nGET /domains\nEvery mail-hosted domain with its filter-enabled state + confidence threshold.\nPUT /domains/:domain/enable\nBody: confidenceThreshold?. Pipes all mail for the domain through the filter; pre-creates quarantine folders for every existing mailbox.\nPUT /domains/:domain/disable\nRestores plain delivery.\nGET /accounts\nQuery: domain?. Per-mailbox filter mode (on/off/inherit) and effective resolved state.\nPUT /accounts/:address/filter-mode\nBody: filterMode (on|off|inherit, required). Per-mailbox override of the domain default.\nStatistics & token usage\nMethod & PathDescription\nGET /stats\nQuery: period? (days, default 30). Spam/ham breakdown by domain, account, and classification type.\nGET /stats/recent\nQuery: limit? (default 100). Most-recent-first raw entries.\nGET /token-usage\nAggregated by provider, model, domain, and month.\nPOST /token-usage/reset\nBacks up the current usage log before truncating it.\nWhitelist / blacklist (global admin view)\nMethod & PathDescription\nGET / POST / DELETE /whitelist(/:id)\nBody (POST): scope (global|domain|user), scopeTarget, entryType (email|domain), entryValue. 409 on duplicate.\nGET / POST / DELETE /blacklist(/:id)\nSame shape, opposite effect.\nA public, unauthenticated endpoint, GET /wl-approve (mounted outside /api entirely), backs the one-click \"whitelist this sender\" links emailed to end users when their mail is quarantined — it validates an HMAC-signed, 7-day-expiring token rather than requiring a login."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "AI Agent",
+      "text": "/api/aiagent\nrequireLicenseFeature('ai-agent') requireAdmin on every route — the only AI add-on module that's fully role-gated. Many routes additionally require the agent to be toggled on (503 otherwise). This module is a thin proxy in front of a separate Node service (\"AI Agent Assistant\") running on its own system user and port, so most calls here forward to that service's own local HTTP API rather than doing the work directly.\nEnable / service control\nMethod & PathDescription\nGET / POST /enabled\nGlobal on/off toggle for the whole feature.\nGET /service\nInstall state, systemd status, and a live health-check probe.\nPOST /service/:action\naction: start|stop|restart.\nGET /status\nThe agent's own status + configured sub-agents.\nGET /active-tasks\nSettings, logs, token usage\nMethod & PathDescription\nGET / PUT /settings\nA whitelisted subset of the agent's own .env — provider/model choice, Telegram/Discord/WhatsApp toggles, Redis/API endpoints, log level.\nGET /logs\nQuery: lines? (default 200, capped 500). Falls back to journalctl if no log files are found.\nGET /token-usage\nThe agent's own usage tracking (separate from the Spam Filter's).\nPOST /token-usage/reset\nAutomations: NL scripts, playbooks, scheduled tasks\nMethod & PathDescription\nGET / POST /nlscripts\nNamed, saved multi-step \"natural language\" playbooks. POST body: name, steps[] (required), description?.\nPUT /nlscripts/:name\nShallow merge onto the existing record — no shape validation on update.\nDELETE /nlscripts/:name\nGET /playbooks\nRead-only summaries (with step bodies stripped) of behaviors the agent has learned. No create/edit route — these are written by the agent itself.\nGET /playbooks/:id\nFull playbook.\nDELETE /playbooks/:id\nGET /scheduled-tasks\nPUT /scheduled-tasks/:id\nSame unrestricted merge as NL scripts. No create route — tasks are created by the agent's own scheduler.\nDELETE /scheduled-tasks/:id\nEmail accounts & credentials vault\nMethod & PathDescription\nGET /email-accounts\nSecrets stripped from the response.\nPOST /email-accounts\nBody: email (required) + arbitrary other fields — stored as-is, including any secret fields you pass, since only the GET strips them.\nDELETE /email-accounts/:email\nGET /credentials\nLists stored secret names only — values are never returned.\nPOST /credentials\nBody: key, value (required). key restricted to a safe character set.\nDELETE /credentials/:key\nPrivate knowledge base\nAdmin-authored operational notes injected into the agent's context — never exposed to clients. Seeded with 15 built-in articles covering the panel's own architecture on first run.\nGET /private-kb\nExcerpted list.\nGET /private-kb/:nname\nFull article.\nPOST /private-kb\nBody: nname, title, category, content (required). Acts as create-or-update (unusual for POST, but this is the documented behavior).\nPUT /private-kb/:nname\nDELETE /private-kb/:nname\nChat (streaming)\nMethod & PathDescription\nGET /chat/stream/:sessionId\nServer-Sent Events proxy to the agent's own webchat stream.\nPOST /chat/message\nBody: sessionId, text. The first message of a new session gets the private KB context automatically prepended.\nPOST /chat/approve\nApproves a pending shell command the agent asked to run.\nPOST /chat/cancel/:sessionId\nDELETE /chat/history/:sessionId\nInstall & maintenance\nMethod & PathDescription\nGET /install/status\nWhether an install is currently in progress.\nPOST /install/fix-permissions\nPOST /install/fix-memory-limit\nRaises the systemd unit's memory cap if child processes were getting OOM-killed.\nPOST /install\nAsync, task-tracked full install: dedicated system user, Redis, downloads the agent source, builds it, installs a narrowly-scoped sudoers file, sets up and starts the systemd unit."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Migration",
+      "text": "/api/migration\nrequireLicenseFeature('migration') on the entire router (402 if not Pro-licensed). Drives account migrations by connecting outward from this server to a source (cPanel/WHM, another SysAdminHCP, or a legacy KloxoNG box) and pulling accounts in. All migration/resync actions are async — kicked off fire-and-forget and tracked via Task Tracker.\nAPI key management\nMints the keys that other servers use to call this server's Migration Export API — not for calling this router itself.\nMethod & PathAuthDescription\nPOST /api-keys\nadmin\nBody: label?, scopeClientName? (restrict to one client), expiresInDays?. Returns the raw <id>.<secret> exactly once.\nGET /api-keys\nadmin\nLists keys, secret/hash excluded.\nDELETE /api-keys/:id\nadmin\nSoft-revokes (doesn't delete the row).\ncPanel / WHM migration\nMethod & PathDescription\nPOST /cpanel/test\nBody: host, apiToken (required), port? (default 2087), username? (default root), rejectUnauthorized?.\nPOST /cpanel/accounts\nLists WHM accounts.\nPOST /cpanel/accounts/:username/preview\nShows what would be imported without changing anything.\nPOST /cpanel/accounts/:username/migrate\nBody adds sshPassword, sshPort? (for pulling files directly) + per-resource toggles (migrateDns/Email/Databases/Files/Ssl/Ftp, default true) and skipExisting?. Returns {success, message, taskId} immediately.\nSysAdminHCP → SysAdminHCP migration\nMethod & PathDescription\nPOST /sysadminhcp/test\nBody: host, apiKey (required — the source's minted Migration API key), port? (default 7777), ssl? (default true), sshUser/sshPassword/sshPort?.\nPOST /sysadminhcp/clients\nLists clients the key is scoped to see on the remote.\nPOST /sysadminhcp/clients/:name/preview\nPOST /sysadminhcp/clients/:name/migrate\nAdds per-resource toggles + postMigrationAction? (none|suspend|delete the source account after success).\nPOST /sysadminhcp/clients/:name/resync\nRequires sshPassword explicitly (400 otherwise) — re-pulls an already-migrated client's changed data.\nKloxoNG migration\nPure-SSH (root password), no HTTP API on the source side.\nMethod & PathDescription\nPOST /kloxong/test\nBody: host, rootPassword (required), sshPort?.\nPOST /kloxong/clients\nPOST /kloxong/clients/:name/preview\nPOST /kloxong/clients/:name/migrate\nSame per-resource toggle shape as the others.\nPOST /kloxong/clients/:name/resync\nNone of the /cpanel/*, /sysadminhcp/*, or /kloxong/* routes require admin explicitly — only the router-level Pro license gate applies, so any logged-in user with the feature enabled can drive a migration. Every migration/resync call swallows its eventual failure into the task record, not the initial HTTP response — a 200 confirms the job started, never that it finished successfully."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "Remote Servers",
+      "text": "/api/remote-servers\nrequireAdmin + requireLicenseFeature('migration') on every route. A saved address-book of other SysAdminHCP instances, used both as migration connection presets and as DNS Cluster peer registrations (dnsClusterEnabled/nsRole).\nMethod & PathDescription\nGET /\nLists servers with apiKey/sshPassword masked.\nGET /:id\nReturns the real, unmasked credentials — the only route in this module that does. Handle accordingly.\nPOST /\nBody: host, apiKey (required) + optional label/port/ssl/ssh fields/dnsClusterEnabled/nsRole. Upserts by matching host+port. Submitting \"***\" for sshPassword leaves the stored value untouched (so the UI can round-trip the masked value safely).\nPUT /:id\nPartial update — notably host/port/apiKey/ssl are not editable via this route; re-POST or delete+recreate to change those.\nDELETE /:id\nPOST /test\nBody: host, apiKey (required). Actually round-trips to the remote's export API; updates the matching registry row's connection status as a side effect if one exists."
+    },
+    {
+      "source": "api",
+      "category": "API Reference",
+      "title": "License",
+      "text": "/api/license\nrequireAdmin on the entire router. Manages this panel's own license state and the Billing API keys that SysAdminBillCP uses to call back into Billing API.\nMethod & PathDescription\nGET /\nCurrent license status.\nGET /hosting-access\nWhether the Hosting menu should be gated (grace period elapsed with no active license).\nPOST /\nBody: licenseKey, billingServerUrl (required). Saves configuration without validating/activating it — call /validate next.\nPOST /validate\nRound-trips to the billing server to re-check validity, then (if active) auto-registers this panel's IP with it.\nGET /server-ip\nThis server's detected public IP (what gets registered with the billing server).\nPOST /local-activate\nBody: features? (default ['ai-agent','ai-spam-filter','migration']), licensedTo?, expiresAt?, registeredIp?, licenseKey?. Self-activates a license with no external verification — an escape hatch for standalone use without a SysAdminBillCP deployment.\nGET /billing-keys\nLists Billing API keys (hash stripped).\nPOST /billing-keys\nBody: label (required), permissions? (read|write|admin, default read), expiresAt?. Returns the raw secret exactly once.\nPUT /billing-keys/:id/status\nToggles on/off. The auto-managed BillCP Auto-Registration key is protected from this (403).\nDELETE /billing-keys/:id\nSame protection for the auto-registration key."
+    }
+  ]
+}
