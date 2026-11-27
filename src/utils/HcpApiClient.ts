@@ -190,6 +190,29 @@ export class HcpApiClient {
     return this.request('PUT', `/api/tickets/${encodeURIComponent(id)}/status`, { status });
   }
 
+  /**
+   * Installs packages through the panel (SysAdminHCP 8.3.0+): the panel's root helper installs only names from its
+   * approved lists (the panel's packages + common admin tools) and notifies the admin. The agent has no sudo.
+   */
+  async installPackages(packages: string[]): Promise<any> {
+    // its own request: an install can take minutes (the shared client times out after 10 s)
+    const send = async () => {
+      const token = await this.ensureToken();
+      const res = await this.getHttp().request({
+        method: 'POST', url: '/api/aiagent/packages/install', data: { packages },
+        timeout: 15 * 60 * 1000, headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    };
+    try {
+      return await send();
+    } catch (error: any) {
+      if (error.response?.status !== 401) throw error;
+      this.token = null;   // token invalidated server-side (panel restart, key revoked): retry once
+      return send();
+    }
+  }
+
   async restartService(serviceType: string, driverName: string): Promise<any> {
     return this.request('POST', '/api/system/services/restart', { serviceType, driverName, action: 'restart' });
   }

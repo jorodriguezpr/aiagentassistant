@@ -3459,26 +3459,23 @@ export class AIToolExecutor {
   private async installPackage(packages: string[]): Promise<any> {
     logger.info({ packages }, 'Installing packages');
 
+    // Through the SysAdminHCP panel (8.3.0+): the agent runs without sudo; the panel's root helper installs only
+    // approved package names (panel packages + common admin tools) with the server's own package manager (dnf/apt).
+    // Before: `sudo apt-get install -y <names>` as one shell string (Debian only; names could inject commands).
+    const names = (Array.isArray(packages) ? packages : []).map(p => String(p).trim()).filter(Boolean);
+    if (!names.length || names.length > 20 || !names.every(p => /^[a-zA-Z0-9][a-zA-Z0-9._+-]{0,60}$/.test(p))) {
+      return { success: false, packages: names, error: 'packages: 1-20 plain package names' };
+    }
     try {
-      const packageList = packages.join(' ');
-      const { stdout, stderr } = await execAsync(`sudo apt-get install -y ${packageList}`, {
-        timeout: 300000, // 5 minutes
-        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-      });
-
-      return {
-        success: true,
-        packages,
-        stdout: stdout.trim(),
-        stderr: stderr.trim(),
-      };
+      const r = await getHcpApiClient().installPackages(names);
+      return { success: !!r?.success, packages: names, stdout: String(r?.output || '').trim(), stderr: '' };
     } catch (error: any) {
+      const body = error?.response?.data;
       return {
         success: false,
-        packages,
-        error: error.message,
-        stdout: error.stdout?.trim() || '',
-        stderr: error.stderr?.trim() || '',
+        packages: names,
+        error: body?.error || error.message,
+        hint: error?.response?.status === 403 ? 'This package is not on the panel\'s approved list - ask the admin to install it from the panel.' : undefined,
       };
     }
   }
